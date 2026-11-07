@@ -1,0 +1,15 @@
+{
+ "edition": "public",
+ "assistant_name": "团团",
+ "wake_phrases": [
+  "你好团团",
+  "团团"
+ ],
+ "wake_asr_aliases": [
+  "团团",
+  "团团团团"
+ ],
+ "persona_prompt_file": "personas/tuantuan.txt",
+ "kws_keywords_file": "personas/keywords_tuantuan.txt",
+ "pet_name_gap": 1000
+}

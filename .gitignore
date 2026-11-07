@@ -1,0 +1,95 @@
+# 大模型权重 / 训练产物（体积大，不入库）
+canaan_commercial_model*/
+canaan_lora*_checkpoints/
+training_suite/checkpoints_lora/
+training_suite/merged_canaan_model/
+tuantuan_model/
+kws_models/
+dataset_*/
+archive/models/
+
+# 语音缓存与临时音频
+tuantuan_voicepack/cache/
+tuantuan_voicepack/reply_*.wav
+/user_voice_cmd.wav
+
+# 二进制 / 打包
+*.zip
+*.safetensors
+*.pth
+*.ckpt
+*.onnx
+*.png
+
+# 运行期
+__pycache__/
+.venv*/
+*keys*.json
+*account*.json
+*candidates*.json
+message_tools/**/bot/
+message_tools/**/live/
+message_tools/**/export/
+message_tools/**/runtime/
+*.pyc
+.pytest_cache/
+logs/
+Canaan_Desk_OS_OpenSource/
+@AutomationLog.txt
+training_suite/dataset/
+
+# 个人数据（长期记忆）
+data/
+
+# 游戏语音 / 角色音色素材：权利不属于本项目，永不入库、永不打包
+tuantuan_voicepack/**/*.wav
+tuantuan_voicepack/**/*.mp3
+tuantuan_voicepack/**/*.ogg
+tuantuan_voicepack/**/*.flac
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a
+# GPT-SoVITS 参考音频、训练集与基于游戏语音训练的音色权重
+GPT-SoVITS/
+GPT_weights*/
+SoVITS_weights*/
+ref_audio/
+reference_audio/
+voice_dataset*/
+tuantuan_tts_infer_runtime.yaml
+
+# 数据安全：密钥、聊天导出、消息工具的个人配置一律不入库
+*secrets*.json
+.env
+message_tools/**/local_export/
+message_tools/**/exports/
+message_tools/**/feishu_config.json
+message_tools/**/imapp_config.json
+message_tools/**/bridge_config.json
+message_tools/**/pinned_groups.json
+message_tools/**/dashboard/data.json
+message_tools/**/导出结果.md
+message_tools/**/_msg.db*
+message_tools/**/_group.db*
+message_tools/imapp_tool/lark-cli.exe
+privacy_audit.jsonl
+
+# 本地下载的小模型（嵌入模型等，首次运行下载）
+models/
+installer/build/
+
+# 联系人别名（私人数据，只留在本机）
+chatapp_contacts_alias.json
+# 覆盖率统计的中间文件
+.coverage
+
+# 手工备份
+*.bak-*
+
+# 评测 / 轮次报告：机器生成，约 2.5GB，审计记录里有原话，不入库（已跟踪的报告照常跟踪）
+reports/
+
+# 前端依赖
+node_modules/

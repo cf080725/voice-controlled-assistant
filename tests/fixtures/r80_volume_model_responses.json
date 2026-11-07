@@ -1,0 +1,216 @@
+{
+  "source_manifest_sha256": "c59927fa2163a12cd733fa9ef4e33c8a1cc92674d2185768369395610c4aac49",
+  "no_private_or_training_data": true,
+  "samples": [
+    {
+      "id": "r78_01",
+      "text": "请把系统音量调高五档",
+      "expected_action": "volume_up",
+      "expected_steps": 5,
+      "response_sha256": "e9720700959c8de9ac4c64d6d0c97146faef774c1979af22a5b13162358dc09b",
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T14:51:46.1605849Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_up\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0002472110209055245,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -9.024550672620535e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -7.629423635080457e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.00455233920365572,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_up",
+            "logprob": -0.01891459710896015,
+            "bytes": [
+              95,
+              117,
+              112
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -9.906782361213118e-05,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -0.000202020542928949,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.4211924970149994,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0027054755482822657,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 338838500,
+        "load_duration": 6718900,
+        "prompt_eval_count": 242,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 134480000,
+        "eval_count": 10,
+        "eval_duration": 190150000
+      }
+    },
+    {
+      "id": "r78_02",
+      "text": "把系统音量调低两档",
+      "expected_action": "volume_down",
+      "expected_steps": 2,
+      "response_sha256": "77eadd70d830944a1e41d91368dda92e0a0262854561fc9c1baf4d7a53cbc97b",
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T14:51:52.320938Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_down\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0001490227150497958,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.00010073692101286724,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -5.245222382654902e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.008302127942442894,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_down",
+            "logprob": -0.06599584221839905,
+            "bytes": [
+              95,
+              100,
+              111,
+              119,
+              110
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -7.867844033171423e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -2.47958396357717e-05,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.06925307214260101,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0010648076422512531,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 130626300,
+        "load_duration": 12214200,
+        "prompt_eval_count": 241,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 17784000,
+        "eval_count": 10,
+        "eval_duration": 94796000
+      }
+    }
+  ]
+}

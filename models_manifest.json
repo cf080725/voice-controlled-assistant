@@ -1,0 +1,76 @@
+{
+ "_说明": "首次运行下载的开放模型（canaan_bootstrap.py）。mirrors 依次尝试，支持断点续传，下载后校验 SHA-256。不包含任何音色模型或游戏音频。",
+ "files": [
+  {
+   "name": "唤醒词模型（sherpa-onnx Zipformer KWS 3.3M）",
+   "archive": "sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01.tar.bz2",
+   "mirrors": [
+    "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01.tar.bz2",
+    "https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01.tar.bz2"
+   ],
+   "extract_to": "kws_models",
+   "verify": {
+    "kws_models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01/tokens.txt": "72316508d9119696145abc6f1f8cdc46287535c34e5ce7e595f845cb1499cf2e",
+    "kws_models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01/encoder-epoch-12-avg-2-chunk-16-left-64.onnx": "859cd6decc23f35e6ddb3a6ddb7172a57f6de7b54288728c2433ab94b7635c59",
+    "kws_models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01/decoder-epoch-12-avg-2-chunk-16-left-64.onnx": "fb581d6734511676e246e0dff2fea01b31b0913176cb3ca64576dbab0a177774",
+    "kws_models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01/joiner-epoch-12-avg-2-chunk-16-left-64.onnx": "fcf43a2edf687e2e1bc8a2b2cf53129d3b0d693d90dcc4202e2d53b43db6c43c"
+   },
+   "copy": {"resources/keywords_tuantuan.txt": "kws_models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01/keywords_tuantuan.txt"}
+  },
+  {
+   "name": "端点检测（silero VAD）",
+   "path": "kws_models/vad/silero_vad.onnx",
+   "size": 643854,
+   "sha256": "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6",
+   "mirrors": [
+    "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx",
+    "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx"
+   ]
+  },
+  {
+   "name": "声纹模型（3D-Speaker CAM++ 中文）",
+   "path": "models/speaker/campplus_zh.onnx",
+   "size": 28281138,
+   "sha256": "f682b514c05d947ee3fa91cd6ec6c5c7543479a128373fa29b1faedccd21fd11",
+   "mirrors": [
+    "https://gh-proxy.com/https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_zh-cn_16k-common.onnx",
+    "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_zh-cn_16k-common.onnx"
+   ]
+  },
+  {"name": "记忆嵌入模型 bge-small-zh-v1.5（权重）", "path": "models/bge-small-zh-v1.5/model.safetensors", "size": 95827648,
+   "sha256": "354763b9b1357bc9c44f62c6be2276321081ed2567773608c0d0785b61d5a026",
+   "mirrors": ["https://www.modelscope.cn/models/BAAI/bge-small-zh-v1.5/resolve/master/model.safetensors",
+               "https://hf-mirror.com/BAAI/bge-small-zh-v1.5/resolve/main/model.safetensors"]},
+  {"name": "bge-small-zh-v1.5 config", "path": "models/bge-small-zh-v1.5/config.json", "size": 776,
+   "sha256": "3853a7979202c348751b753e36f579c41d8da7d36af617d3d907e1fc9b441f2a",
+   "mirrors": ["https://www.modelscope.cn/models/BAAI/bge-small-zh-v1.5/resolve/master/config.json",
+               "https://hf-mirror.com/BAAI/bge-small-zh-v1.5/resolve/main/config.json"]},
+  {"name": "bge-small-zh-v1.5 tokenizer", "path": "models/bge-small-zh-v1.5/tokenizer.json", "size": 439125,
+   "sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26",
+   "mirrors": ["https://www.modelscope.cn/models/BAAI/bge-small-zh-v1.5/resolve/master/tokenizer.json",
+               "https://hf-mirror.com/BAAI/bge-small-zh-v1.5/resolve/main/tokenizer.json"]},
+  {"name": "bge-small-zh-v1.5 tokenizer_config", "path": "models/bge-small-zh-v1.5/tokenizer_config.json", "size": 367,
+   "sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a",
+   "mirrors": ["https://www.modelscope.cn/models/BAAI/bge-small-zh-v1.5/resolve/master/tokenizer_config.json",
+               "https://hf-mirror.com/BAAI/bge-small-zh-v1.5/resolve/main/tokenizer_config.json"]},
+  {"name": "bge-small-zh-v1.5 vocab", "path": "models/bge-small-zh-v1.5/vocab.txt", "size": 109540,
+   "sha256": "45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c",
+   "mirrors": ["https://www.modelscope.cn/models/BAAI/bge-small-zh-v1.5/resolve/master/vocab.txt",
+               "https://hf-mirror.com/BAAI/bge-small-zh-v1.5/resolve/main/vocab.txt"]},
+  {"name": "bge-small-zh-v1.5 special_tokens", "path": "models/bge-small-zh-v1.5/special_tokens_map.json", "size": 125,
+   "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+   "mirrors": ["https://www.modelscope.cn/models/BAAI/bge-small-zh-v1.5/resolve/master/special_tokens_map.json",
+               "https://hf-mirror.com/BAAI/bge-small-zh-v1.5/resolve/main/special_tokens_map.json"]}
+ ],
+ "ollama": [
+  {"name": "陪聊模型 canaan-chat:3b", "tiers": ["8gb"],
+   "steps": [["ollama", "pull", "modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M"],
+             ["ollama", "create", "canaan-chat:3b", "-f", "resources/Modelfile_chat_3b"]]},
+  {"name": "后备意图/陪聊模型 qwen2.5:1.5b（6GB 档陪聊、意图模型出错时）", "tiers": ["8gb", "6gb"],
+   "steps": [["ollama", "pull", "modelscope.cn/Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M"],
+             ["ollama", "cp", "modelscope.cn/Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M", "canaan-desk:1.5b"]]},
+  {"name": "意图模型 canaan-intent:1.5b（可选，需自行准备获准使用的 models/canaan-intent-q4_k_m.gguf；本机训练权重不随发行包提供）", "tiers": ["8gb", "6gb"],
+   "requires_file": "models/canaan-intent-q4_k_m.gguf",
+   "steps": [["ollama", "create", "canaan-intent:1.5b", "-f", "resources/Modelfile_intent"]]}
+ ]
+}

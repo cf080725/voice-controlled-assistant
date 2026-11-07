@@ -1,0 +1,142 @@
+{
+  "source_manifest_sha256": "c59927fa2163a12cd733fa9ef4e33c8a1cc92674d2185768369395610c4aac49",
+  "source_response_sha256": "ae7f01ec9f1641d18317aa45784da961612a41aafa71fa9423a2a351f8a729fa",
+  "source_id": "r78_07",
+  "text": "搜索火星探测器",
+  "expected_action": "web_search",
+  "param_aliases": [
+    "火星探测器"
+  ],
+  "response": {
+    "model": "canaan-chat:3b",
+    "created_at": "2026-10-31T14:52:23.8527019Z",
+    "message": {
+      "role": "assistant",
+      "content": "{\"a\":\"search_file\",\"p\":\"火星探测器\"}"
+    },
+    "done": true,
+    "done_reason": "stop",
+    "logprobs": [
+      {
+        "token": "{\"",
+        "logprob": -0.0004122510727029294,
+        "bytes": [
+          123,
+          34
+        ]
+      },
+      {
+        "token": "a",
+        "logprob": -0.0004455247544683516,
+        "bytes": [
+          97
+        ]
+      },
+      {
+        "token": "\":\"",
+        "logprob": -5.960482212685747e-06,
+        "bytes": [
+          34,
+          58,
+          34
+        ]
+      },
+      {
+        "token": "search",
+        "logprob": -0.010471982881426811,
+        "bytes": [
+          115,
+          101,
+          97,
+          114,
+          99,
+          104
+        ]
+      },
+      {
+        "token": "_file",
+        "logprob": -8.356920443475246e-05,
+        "bytes": [
+          95,
+          102,
+          105,
+          108,
+          101
+        ]
+      },
+      {
+        "token": "\",\"",
+        "logprob": 0,
+        "bytes": [
+          34,
+          44,
+          34
+        ]
+      },
+      {
+        "token": "p",
+        "logprob": -4.887592695013154e-06,
+        "bytes": [
+          112
+        ]
+      },
+      {
+        "token": "\":\"",
+        "logprob": -3.5167358873877674e-05,
+        "bytes": [
+          34,
+          58,
+          34
+        ]
+      },
+      {
+        "token": "火星",
+        "logprob": -0.0179707370698452,
+        "bytes": [
+          231,
+          129,
+          171,
+          230,
+          152,
+          159
+        ]
+      },
+      {
+        "token": "探测",
+        "logprob": -0.00011540124978637323,
+        "bytes": [
+          230,
+          142,
+          162,
+          230,
+          181,
+          139
+        ]
+      },
+      {
+        "token": "器",
+        "logprob": -0.00018306261335965246,
+        "bytes": [
+          229,
+          153,
+          168
+        ]
+      },
+      {
+        "token": "\"}",
+        "logprob": -0.006008880212903023,
+        "bytes": [
+          34,
+          125
+        ]
+      }
+    ],
+    "total_duration": 161252700,
+    "load_duration": 5955300,
+    "prompt_eval_count": 237,
+    "prompt_eval_cached_count": 228,
+    "prompt_eval_duration": 17189000,
+    "eval_count": 13,
+    "eval_duration": 130832000
+  }
+}

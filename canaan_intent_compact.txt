@@ -1,0 +1,8 @@
+把用户对电脑语音助手说的一句话转成指令，只输出 JSON：{"a":"动作","p":"参数"}。
+用户只是提到、提问、闲聊、否定、假设、转述别人、说已经做过或正在做的事时，a 为 chat。
+动作与参数：
+open_app 软件名 | close_app 软件名或进程名 | open_chatapp | send_chatapp {"contact":联系人,"message":内容} | recall_chatapp
+volume_up | volume_down | volume_mute | brightness_up | brightness_down | set_brightness 0到100
+media_control next/prev/play_pause | screenshot | lock_screen | show_desktop | system_status
+open_path 文件夹 | search_file 本机文件名 | open_url 网址 | web_search 上网搜的关键词 | doc_search 竞赛指南或开发文档里的问题
+run_script 脚本名 | diagnose_error | setup_workspace | ufo_task 在软件界面里的具体操作 | run_cmd 系统命令 | chat

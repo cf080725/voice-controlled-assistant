@@ -1,0 +1,2500 @@
+{
+  "scope": "Actual R88 local 3B responses on the same fixed synthetic ASR transcripts; no new model calls",
+  "source_manifest_sha256": "aa95c2c36dc468184cf14503d448b3d863857850a75be64e6ca19eac2bbdaf54",
+  "cases": [
+    {
+      "id": "r83_01",
+      "text": "把系统音量调低两档",
+      "expected_action": "volume_down",
+      "param_aliases": [
+        "2"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:02:03.221676Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_down\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0001490227150497958,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.00010073692101286724,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -5.245222382654902e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.008302127942442894,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_down",
+            "logprob": -0.06599584221839905,
+            "bytes": [
+              95,
+              100,
+              111,
+              119,
+              110
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -7.867844033171423e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -2.47958396357717e-05,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.06925307214260101,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0010648076422512531,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 137066200,
+        "load_duration": 4723700,
+        "prompt_eval_count": 241,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 20479000,
+        "eval_count": 10,
+        "eval_duration": 103891000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\runs\\r83_01\\actual_response.json",
+        "source_sha256": "a3fc11793befd78c741940d801494e0d1f3d43fa77f9fb87eb52a9b77fb5b7ce",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "r83_02",
+      "text": "请把系统音量调高五档",
+      "expected_action": "volume_up",
+      "param_aliases": [
+        "5"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:24:37.6044878Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_up\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0002472110209055245,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -9.024550672620535e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -7.629423635080457e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.00455233920365572,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_up",
+            "logprob": -0.01891459710896015,
+            "bytes": [
+              95,
+              117,
+              112
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -9.906782361213118e-05,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -0.000202020542928949,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.4211924970149994,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0027054755482822657,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 118997400,
+        "load_duration": 3740000,
+        "prompt_eval_count": 242,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 19041000,
+        "eval_count": 10,
+        "eval_duration": 90593000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\r83_02\\actual_response.json",
+        "source_sha256": "5a1ce7c9cc17f5162771fdb3850b8aca165484b27e9be6ba591e16ac284d0df2",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "r83_03",
+      "text": "请打开计算器",
+      "expected_action": "open_app",
+      "param_aliases": [
+        "calc",
+        "计算器"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:24:41.2603046Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"open_app\",\"p\":\"计算器\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -2.6107174562639557e-05,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.0001063403396983631,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.9669725588755682e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "open",
+            "logprob": -0.0010956565383821726,
+            "bytes": [
+              111,
+              112,
+              101,
+              110
+            ]
+          },
+          {
+            "token": "_app",
+            "logprob": -0.001182480133138597,
+            "bytes": [
+              95,
+              97,
+              112,
+              112
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -1.1920930376163597e-07,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -4.291543518775143e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.025205165205989e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "计算器",
+            "logprob": -0.00037343319854699075,
+            "bytes": [
+              232,
+              174,
+              161,
+              231,
+              174,
+              151,
+              229,
+              153,
+              168
+            ]
+          },
+          {
+            "token": "\"}",
+            "logprob": -0.00010884400398936123,
+            "bytes": [
+              34,
+              125
+            ]
+          }
+        ],
+        "total_duration": 138192700,
+        "load_duration": 3388200,
+        "prompt_eval_count": 236,
+        "prompt_eval_cached_count": 229,
+        "prompt_eval_duration": 18427000,
+        "eval_count": 11,
+        "eval_duration": 111709000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\r83_03\\actual_response.json",
+        "source_sha256": "f7c2424614abf711559269bbbbb8544e131a960f7a1934e02e340428731d8b4a",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "r83_04",
+      "text": "我不想截图",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:24:44.8909187Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"chat\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0009315178613178432,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.0001063403396983631,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -8.380764484172687e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "chat",
+            "logprob": -0.0004403964849188924,
+            "bytes": [
+              99,
+              104,
+              97,
+              116
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -2.3841887468734058e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -2.3841887468734058e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.00019474733562674373,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.00048625367344357073,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 124459000,
+        "load_duration": 4456500,
+        "prompt_eval_count": 235,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18556000,
+        "eval_count": 9,
+        "eval_duration": 88769000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\r83_04\\actual_response.json",
+        "source_sha256": "888dde91f534168e80ed032bf5a541bf4b663a830bb5c70a29ea925c3e974bee",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "r83_05",
+      "text": "如果我让你锁屏，你会怎么做？",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:24:48.4736985Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"lock_screen\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0007578621152788401,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -2.1338690203265287e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -6.198902156029362e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "lock",
+            "logprob": -0.009420942515134811,
+            "bytes": [
+              108,
+              111,
+              99,
+              107
+            ]
+          },
+          {
+            "token": "_screen",
+            "logprob": -0.00011242067557759583,
+            "bytes": [
+              95,
+              115,
+              99,
+              114,
+              101,
+              101,
+              110
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -7.510213436034974e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -2.3842141672503203e-05,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.0007005999214015901,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.00027582873008213937,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 139993300,
+        "load_duration": 16538900,
+        "prompt_eval_count": 242,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18519000,
+        "eval_count": 10,
+        "eval_duration": 98238000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\r83_05\\actual_response.json",
+        "source_sha256": "d48a7f31a4e2f414edcb57526aa8a6065da81bb849a60c4c513b03900523a3db",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "r83_06",
+      "text": "截图快捷键是哪个？",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:24:52.2380229Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"run_cmd\",\"p\":\"Get-NetIPAddress -AddressFamily IPv4 | Get-NetIPAddress -AddressFamily IPv6\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.00012994656572118402,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -6.330213363980874e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -2.1934749383945018e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "run",
+            "logprob": -0.176874041557312,
+            "bytes": [
+              114,
+              117,
+              110
+            ]
+          },
+          {
+            "token": "_cmd",
+            "logprob": -0.00038995000068098307,
+            "bytes": [
+              95,
+              99,
+              109,
+              100
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -2.2649790025752736e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -6.198902156029362e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -0.0018071160884574056,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "Get",
+            "logprob": -0.590632975101471,
+            "bytes": [
+              71,
+              101,
+              116
+            ]
+          },
+          {
+            "token": "-",
+            "logprob": -0.4077516794204712,
+            "bytes": [
+              45
+            ]
+          },
+          {
+            "token": "Net",
+            "logprob": -0.22510555386543274,
+            "bytes": [
+              78,
+              101,
+              116
+            ]
+          },
+          {
+            "token": "IPAddress",
+            "logprob": -0.8168635964393616,
+            "bytes": [
+              73,
+              80,
+              65,
+              100,
+              100,
+              114,
+              101,
+              115,
+              115
+            ]
+          },
+          {
+            "token": " -",
+            "logprob": -0.6352901458740234,
+            "bytes": [
+              32,
+              45
+            ]
+          },
+          {
+            "token": "Address",
+            "logprob": -0.024158641695976257,
+            "bytes": [
+              65,
+              100,
+              100,
+              114,
+              101,
+              115,
+              115
+            ]
+          },
+          {
+            "token": "Family",
+            "logprob": -0.0027269914280623198,
+            "bytes": [
+              70,
+              97,
+              109,
+              105,
+              108,
+              121
+            ]
+          },
+          {
+            "token": " IPv",
+            "logprob": -0.01091358158737421,
+            "bytes": [
+              32,
+              73,
+              80,
+              118
+            ]
+          },
+          {
+            "token": "4",
+            "logprob": -0.0001375769788865,
+            "bytes": [
+              52
+            ]
+          },
+          {
+            "token": " |",
+            "logprob": -0.23079955577850342,
+            "bytes": [
+              32,
+              124
+            ]
+          },
+          {
+            "token": " Get",
+            "logprob": -0.34768807888031006,
+            "bytes": [
+              32,
+              71,
+              101,
+              116
+            ]
+          },
+          {
+            "token": "-",
+            "logprob": -0.0058751096948981285,
+            "bytes": [
+              45
+            ]
+          },
+          {
+            "token": "Net",
+            "logprob": -0.0014734389260411263,
+            "bytes": [
+              78,
+              101,
+              116
+            ]
+          },
+          {
+            "token": "IPAddress",
+            "logprob": -0.6895421147346497,
+            "bytes": [
+              73,
+              80,
+              65,
+              100,
+              100,
+              114,
+              101,
+              115,
+              115
+            ]
+          },
+          {
+            "token": " -",
+            "logprob": -0.015729889273643494,
+            "bytes": [
+              32,
+              45
+            ]
+          },
+          {
+            "token": "Address",
+            "logprob": -0.00022074035950936377,
+            "bytes": [
+              65,
+              100,
+              100,
+              114,
+              101,
+              115,
+              115
+            ]
+          },
+          {
+            "token": "Family",
+            "logprob": -0.00012732362665701658,
+            "bytes": [
+              70,
+              97,
+              109,
+              105,
+              108,
+              121
+            ]
+          },
+          {
+            "token": " IPv",
+            "logprob": -0.00029961782274767756,
+            "bytes": [
+              32,
+              73,
+              80,
+              118
+            ]
+          },
+          {
+            "token": "6",
+            "logprob": -0.02340395376086235,
+            "bytes": [
+              54
+            ]
+          },
+          {
+            "token": "\"}",
+            "logprob": -0.18884260952472687,
+            "bytes": [
+              34,
+              125
+            ]
+          }
+        ],
+        "total_duration": 314436100,
+        "load_duration": 6419600,
+        "prompt_eval_count": 239,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 17809000,
+        "eval_count": 29,
+        "eval_duration": 284980000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\r83_06\\actual_response.json",
+        "source_sha256": "c639c8b99106f58ba458004e75fb54fa952883185a7d5a4b187239bdab31046c",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "r83_07",
+      "text": "老板让我截图给他",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:24:57.0435489Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"screenshot\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.00015081111632753164,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -6.723630212945864e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.0848104466276709e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "s",
+            "logprob": -0.3870078921318054,
+            "bytes": [
+              115
+            ]
+          },
+          {
+            "token": "creenshot",
+            "logprob": -4.768382950715022e-06,
+            "bytes": [
+              99,
+              114,
+              101,
+              101,
+              110,
+              115,
+              104,
+              111,
+              116
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -6.07969241173123e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -4.768372718899627e-07,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -8.237700967583805e-05,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.00032275161356665194,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 118473400,
+        "load_duration": 3626100,
+        "prompt_eval_count": 237,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 16745999,
+        "eval_count": 10,
+        "eval_duration": 87147000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\r83_07\\actual_response.json",
+        "source_sha256": "b4f68310def501dd5c8d23873e4fde9c3839b45d41bda1f88f7442956fd40ca6",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "r83_08",
+      "text": "搜索火星探测器",
+      "expected_action": "web_search",
+      "param_aliases": [
+        "火星探测器"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:01.8061115Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"search_file\",\"p\":\"火星探测器\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0004122510727029294,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.0004455247544683516,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -5.960482212685747e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "search",
+            "logprob": -0.010471982881426811,
+            "bytes": [
+              115,
+              101,
+              97,
+              114,
+              99,
+              104
+            ]
+          },
+          {
+            "token": "_file",
+            "logprob": -8.356920443475246e-05,
+            "bytes": [
+              95,
+              102,
+              105,
+              108,
+              101
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": 0,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -4.887592695013154e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -3.5167358873877674e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "火星",
+            "logprob": -0.0179707370698452,
+            "bytes": [
+              231,
+              129,
+              171,
+              230,
+              152,
+              159
+            ]
+          },
+          {
+            "token": "探测",
+            "logprob": -0.00011540124978637323,
+            "bytes": [
+              230,
+              142,
+              162,
+              230,
+              181,
+              139
+            ]
+          },
+          {
+            "token": "器",
+            "logprob": -0.00018306261335965246,
+            "bytes": [
+              229,
+              153,
+              168
+            ]
+          },
+          {
+            "token": "\"}",
+            "logprob": -0.006008880212903023,
+            "bytes": [
+              34,
+              125
+            ]
+          }
+        ],
+        "total_duration": 174757800,
+        "load_duration": 7201300,
+        "prompt_eval_count": 237,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 27447000,
+        "eval_count": 13,
+        "eval_duration": 134676000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\r83_08\\actual_response.json",
+        "source_sha256": "c6ed456c36f3a967309c2a7db621a9ca4e4c0770dde350d0611766031d2a4777",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v01",
+      "text": "把音量调低四档",
+      "expected_action": "volume_down",
+      "param_aliases": [
+        "4"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:05.3524119Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_down\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -8.368842100026086e-05,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -9.811405470827594e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -7.629423635080457e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.00398546876385808,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_down",
+            "logprob": -0.06311271339654922,
+            "bytes": [
+              95,
+              100,
+              111,
+              119,
+              110
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -0.00012112397234886885,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -5.6864446378313005e-05,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.5870232582092285,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0006454285467043519,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 131648600,
+        "load_duration": 4355300,
+        "prompt_eval_count": 240,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 19126000,
+        "eval_count": 10,
+        "eval_duration": 103638000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v01\\actual_response.json",
+        "source_sha256": "e3da55c077d27bce82aaeb36093e0e5cb3deaec4d31f2c3cb232af2473fde940",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v02",
+      "text": "音量给我调高三档",
+      "expected_action": "volume_up",
+      "param_aliases": [
+        "3"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:08.9518071Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_up\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -6.878612475702539e-05,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -8.118482219288126e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -9.298368240706623e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.0013679678086191416,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_up",
+            "logprob": -0.0006766223814338446,
+            "bytes": [
+              95,
+              117,
+              112
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -2.0265599687263602e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -4.041276406496763e-05,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -8.953018550528213e-05,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0005464258138090372,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 129182400,
+        "load_duration": 4655300,
+        "prompt_eval_count": 239,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18839000,
+        "eval_count": 10,
+        "eval_duration": 100716000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v02\\actual_response.json",
+        "source_sha256": "8182434878150e98e6470c9a94e91bee4978162f64da76898ccb03d59e807ed7",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v03",
+      "text": "把屏幕亮度调低一点",
+      "expected_action": "brightness_down",
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:12.5173902Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"brightness_down\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.002987910294905305,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.0002230058453278616,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -9.655998837843072e-06,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "brightness",
+            "logprob": -0.018537698313593864,
+            "bytes": [
+              98,
+              114,
+              105,
+              103,
+              104,
+              116,
+              110,
+              101,
+              115,
+              115
+            ]
+          },
+          {
+            "token": "_down",
+            "logprob": -0.00015653404989279807,
+            "bytes": [
+              95,
+              100,
+              111,
+              119,
+              110
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -2.145769485650817e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -3.5048145946348086e-05,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.0001837780000641942,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0032410635612905025,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 128039900,
+        "load_duration": 3599600,
+        "prompt_eval_count": 239,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18822000,
+        "eval_count": 10,
+        "eval_duration": 100743000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v03\\actual_response.json",
+        "source_sha256": "a771d38a47e3549c2035fe27a7fcbe57c412ba12f9413d52c86307ca1de62ebd",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v04",
+      "text": "打开记事本",
+      "expected_action": "open_app",
+      "param_aliases": [
+        "notepad",
+        "记事本"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:16.1082196Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"open_app\",\"p\":\"记事本\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -5.3049541747896e-05,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -8.571515354560688e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.5735749911982566e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "open",
+            "logprob": -0.0010878994362428784,
+            "bytes": [
+              111,
+              112,
+              101,
+              110
+            ]
+          },
+          {
+            "token": "_app",
+            "logprob": -0.0002133477828465402,
+            "bytes": [
+              95,
+              97,
+              112,
+              112
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": 0,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -3.814704541582614e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.0371261851105373e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "记",
+            "logprob": -0.0009832446230575442,
+            "bytes": [
+              232,
+              174,
+              176
+            ]
+          },
+          {
+            "token": "事",
+            "logprob": -1.1920930376163597e-07,
+            "bytes": [
+              228,
+              186,
+              139
+            ]
+          },
+          {
+            "token": "本",
+            "logprob": -1.0728893357736524e-05,
+            "bytes": [
+              230,
+              156,
+              172
+            ]
+          },
+          {
+            "token": "\"}",
+            "logprob": -6.914378172950819e-05,
+            "bytes": [
+              34,
+              125
+            ]
+          }
+        ],
+        "total_duration": 155595100,
+        "load_duration": 3713200,
+        "prompt_eval_count": 237,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18364000,
+        "eval_count": 13,
+        "eval_duration": 128786000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v04\\actual_response.json",
+        "source_sha256": "f38f3dbb425ee26c9392afe0f49387770b37fad442a9888d7f3f34e61b26fad3",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v05",
+      "text": "不要锁屏",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:20.7532896Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"chat\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0010368237271904945,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -7.927732076495886e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -3.111410842393525e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "chat",
+            "logprob": -0.011798027902841568,
+            "bytes": [
+              99,
+              104,
+              97,
+              116
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -1.2636264727916569e-05,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -2.0265599687263602e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.00038535866769962013,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.00020607448823284358,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 133495600,
+        "load_duration": 4770100,
+        "prompt_eval_count": 236,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 26477000,
+        "eval_count": 9,
+        "eval_duration": 91422000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v05\\actual_response.json",
+        "source_sha256": "d34c2df3ea3c4bf05adbd9fb7994d99cf6abbc578c8a2550b3a2c8baf1b29136",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v06",
+      "text": "别给我截图",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:24.3081478Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"chat\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.00032000892679207027,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -8.571515354560688e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -5.018836964154616e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "chat",
+            "logprob": -0.01056799665093422,
+            "bytes": [
+              99,
+              104,
+              97,
+              116
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -8.344653679159819e-07,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -2.145769485650817e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.0003281177778262645,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.000587755290325731,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 116413400,
+        "load_duration": 4159300,
+        "prompt_eval_count": 236,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18137000,
+        "eval_count": 9,
+        "eval_duration": 88637000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v06\\actual_response.json",
+        "source_sha256": "c94efe0696316a29474e461d2cd9c630279fa3047c0821b5432b6bf6647b5fb6",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v07",
+      "text": "要是我让你调低音量，你会怎么做？",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:27.902542Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_down\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0009832446230575442,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -1.0728893357736524e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.0848104466276709e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.1444557160139084,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_down",
+            "logprob": -0.03825436905026436,
+            "bytes": [
+              95,
+              100,
+              111,
+              119,
+              110
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -2.861027041944908e-06,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -3.337865791763761e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.0002690319379325956,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.002661727601662278,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 130321100,
+        "load_duration": 3674700,
+        "prompt_eval_count": 244,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18520000,
+        "eval_count": 10,
+        "eval_duration": 102611000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v07\\actual_response.json",
+        "source_sha256": "f52927cc469a3087c03675aba72308ab5f702d22888ccd534344e9b733b943a6",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v08",
+      "text": "老板让我锁屏，不过现在不用执行",
+      "expected_action": "chat",
+      "expected_pending": null,
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:31.4870729Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"chat\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.00010908245167229325,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.00020404750830493867,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -3.588264007703401e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "chat",
+            "logprob": -0.06461386382579803,
+            "bytes": [
+              99,
+              104,
+              97,
+              116
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -3.576279254957626e-07,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -1.1920935776288388e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -0.0002797637425828725,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.00033586897188797593,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 121653600,
+        "load_duration": 4740200,
+        "prompt_eval_count": 242,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18805000,
+        "eval_count": 9,
+        "eval_duration": 92818000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v08\\actual_response.json",
+        "source_sha256": "9433a1ec2834f51e2b3ae909f6676fe695aedd06f92d2d690bdc639350e35cd1",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v09",
+      "text": "网上搜索海王星图片",
+      "expected_action": "web_search",
+      "param_aliases": [
+        "海王星图片"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:35.1432737Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"web_search\",\"p\":\"海王星图片\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0028289000038057566,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.0004371764080133289,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -2.8610638764803298e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "web",
+            "logprob": -0.005340026691555977,
+            "bytes": [
+              119,
+              101,
+              98
+            ]
+          },
+          {
+            "token": "_search",
+            "logprob": -1.2517053619376384e-05,
+            "bytes": [
+              95,
+              115,
+              101,
+              97,
+              114,
+              99,
+              104
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -4.768372718899627e-07,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -1.3113030945532955e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.4424427718040533e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "海",
+            "logprob": -0.12353584915399551,
+            "bytes": [
+              230,
+              181,
+              183
+            ]
+          },
+          {
+            "token": "王",
+            "logprob": -1.1324947081448045e-05,
+            "bytes": [
+              231,
+              142,
+              139
+            ]
+          },
+          {
+            "token": "星",
+            "logprob": -2.0742631022585556e-05,
+            "bytes": [
+              230,
+              152,
+              159
+            ]
+          },
+          {
+            "token": "图片",
+            "logprob": -0.07068473100662231,
+            "bytes": [
+              229,
+              155,
+              190,
+              231,
+              137,
+              135
+            ]
+          },
+          {
+            "token": "\"}",
+            "logprob": -6.401744030881673e-05,
+            "bytes": [
+              34,
+              125
+            ]
+          }
+        ],
+        "total_duration": 171739500,
+        "load_duration": 11096400,
+        "prompt_eval_count": 239,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 18999000,
+        "eval_count": 14,
+        "eval_duration": 136546000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v09\\actual_response.json",
+        "source_sha256": "cbe45b6d610642d333d7d6d82ff15d9a0655a1ab455c81eb0a9cb61dac23af26",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v10",
+      "text": "切到下一首歌",
+      "expected_action": "media_control",
+      "param_aliases": [
+        "next"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:39.9851434Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"media_control\",\"p\":\"next\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.005091913044452667,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -0.00034755546948872507,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -3.039883085875772e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "media",
+            "logprob": -0.031146833673119545,
+            "bytes": [
+              109,
+              101,
+              100,
+              105,
+              97
+            ]
+          },
+          {
+            "token": "_control",
+            "logprob": -0.00010264446609653533,
+            "bytes": [
+              95,
+              99,
+              111,
+              110,
+              116,
+              114,
+              111,
+              108
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -0.0019712194334715605,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -5.602852525044e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -0.0005839383229613304,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "next",
+            "logprob": -0.01672697253525257,
+            "bytes": [
+              110,
+              101,
+              120,
+              116
+            ]
+          },
+          {
+            "token": "\"}",
+            "logprob": -0.010298107750713825,
+            "bytes": [
+              34,
+              125
+            ]
+          }
+        ],
+        "total_duration": 139727500,
+        "load_duration": 3374300,
+        "prompt_eval_count": 238,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 21195000,
+        "eval_count": 11,
+        "eval_duration": 109854000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v10\\actual_response.json",
+        "source_sha256": "cbe4c58e09a37b988c615202e9a9327c706412bdffdd13f7ee385c42d5ba4890",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v11",
+      "text": "请静音",
+      "expected_action": "volume_mute",
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:43.5797352Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"volume_mute\",\"p\":\"\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -2.95643403660506e-05,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -4.1604907892178744e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.0013630344474223e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "volume",
+            "logprob": -0.014380966313183308,
+            "bytes": [
+              118,
+              111,
+              108,
+              117,
+              109,
+              101
+            ]
+          },
+          {
+            "token": "_m",
+            "logprob": -4.506212644628249e-05,
+            "bytes": [
+              95,
+              109
+            ]
+          },
+          {
+            "token": "ute",
+            "logprob": -2.8610638764803298e-05,
+            "bytes": [
+              117,
+              116,
+              101
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -3.933984044124372e-05,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -8.225474630307872e-06,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"\"",
+            "logprob": -9.358367242384702e-05,
+            "bytes": [
+              34,
+              58,
+              34,
+              34
+            ]
+          },
+          {
+            "token": "}",
+            "logprob": -0.0008408981375396252,
+            "bytes": [
+              125
+            ]
+          }
+        ],
+        "total_duration": 139339500,
+        "load_duration": 3636000,
+        "prompt_eval_count": 236,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 17959000,
+        "eval_count": 11,
+        "eval_duration": 112872000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v11\\actual_response.json",
+        "source_sha256": "f9f20626ffdfb2972f5c3f91a41a97ff3f392569a3280e1276ce500ab16e6e20",
+        "actual_response": true
+      }
+    },
+    {
+      "id": "v12",
+      "text": "把系统音量调到30%",
+      "expected_action": "volume",
+      "param_aliases": [
+        "30"
+      ],
+      "response": {
+        "model": "canaan-chat:3b",
+        "created_at": "2026-10-31T20:25:48.2856922Z",
+        "message": {
+          "role": "assistant",
+          "content": "{\"a\":\"set_brightness\",\"p\":\"30\"}"
+        },
+        "done": true,
+        "done_reason": "stop",
+        "logprobs": [
+          {
+            "token": "{\"",
+            "logprob": -0.0003010487707797438,
+            "bytes": [
+              123,
+              34
+            ]
+          },
+          {
+            "token": "a",
+            "logprob": -5.7102879509329796e-05,
+            "bytes": [
+              97
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -1.585496102052275e-05,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "set",
+            "logprob": -0.003719084430485964,
+            "bytes": [
+              115,
+              101,
+              116
+            ]
+          },
+          {
+            "token": "_brightness",
+            "logprob": -0.0021136074792593718,
+            "bytes": [
+              95,
+              98,
+              114,
+              105,
+              103,
+              104,
+              116,
+              110,
+              101,
+              115,
+              115
+            ]
+          },
+          {
+            "token": "\",\"",
+            "logprob": -1.0132840543519706e-05,
+            "bytes": [
+              34,
+              44,
+              34
+            ]
+          },
+          {
+            "token": "p",
+            "logprob": -2.0265784769435413e-05,
+            "bytes": [
+              112
+            ]
+          },
+          {
+            "token": "\":\"",
+            "logprob": -0.011923002079129219,
+            "bytes": [
+              34,
+              58,
+              34
+            ]
+          },
+          {
+            "token": "3",
+            "logprob": -0.001071609789505601,
+            "bytes": [
+              51
+            ]
+          },
+          {
+            "token": "0",
+            "logprob": -1.0013630344474223e-05,
+            "bytes": [
+              48
+            ]
+          },
+          {
+            "token": "\"}",
+            "logprob": -0.17963218688964844,
+            "bytes": [
+              34,
+              125
+            ]
+          }
+        ],
+        "total_duration": 144743800,
+        "load_duration": 3329900,
+        "prompt_eval_count": 242,
+        "prompt_eval_cached_count": 228,
+        "prompt_eval_duration": 17998000,
+        "eval_count": 12,
+        "eval_duration": 118861000
+      },
+      "provenance": {
+        "source": "reports\\asr_intent_round88_20261031\\shared_01\\runs\\v12\\actual_response.json",
+        "source_sha256": "b675edee7622452748c9d2a145cdd1a71d7fd704dc2db364a050069cce53b5e9",
+        "actual_response": true
+      }
+    }
+  ]
+}

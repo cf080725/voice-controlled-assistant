@@ -1,0 +1,28 @@
+{
+  "name": "canaan-progress",
+  "displayName": "团团进度提示",
+  "description": "把 VS Code 里任务、调试、长时间终端命令的开始 / 完成 / 失败报给本机的团团（灵动岛提示）。只报状态和标题，不读代码、不执行任何东西。",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "Apache-2.0",
+  "engines": { "vscode": "^1.93.0" },
+  "main": "./extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      { "command": "canaan.setToken", "title": "团团：设置进度令牌" },
+      { "command": "canaan.test", "title": "团团：发一条测试提示" }
+    ],
+    "configuration": {
+      "title": "团团进度提示",
+      "properties": {
+        "canaan.apiUrl": { "type": "string", "default": "http://127.0.0.1:8789", "description": "团团本机接口地址（只允许本机地址）" },
+        "canaan.minCommandSeconds": { "type": "number", "default": 10, "description": "终端命令运行超过多少秒才报完成 / 失败" },
+        "canaan.reportTasks": { "type": "boolean", "default": true },
+        "canaan.reportDebug": { "type": "boolean", "default": true },
+        "canaan.reportTerminal": { "type": "boolean", "default": true }
+      }
+    }
+  },
+  "scripts": { "test": "node --test test/lib.test.js" }
+}

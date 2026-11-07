@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "canaan": {
+      "command": "YOUR_PROJECT/.venv-integrations/Scripts/python.exe",
+      "args": ["YOUR_PROJECT/canaan_mcp_server.py"],
+      "env": {"CANAAN_API_URL": "http://127.0.0.1:8789"}
+    }
+  }
+}

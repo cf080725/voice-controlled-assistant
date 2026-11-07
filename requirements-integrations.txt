@@ -1,0 +1,8 @@
+mcp>=1.30,<2
+psutil>=5.9.0
+uiautomation>=2,<3
+pypdf>=5,<7
+python-docx>=1.1,<2
+cryptography>=50,<51
+zstandard>=0.25,<1
+silk-python==0.2.8
