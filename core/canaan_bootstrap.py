@@ -31,17 +31,40 @@ def sha256(path):
     return h.hexdigest()
 
 
+GITHUB_PROXIES = ("https://gh-proxy.com/", "https://ghproxy.net/")
+
+
+def expand_mirrors(mirrors):
+    """github.com 的下载链接在一些网络里会间歇性 504（release 下载通道），每个都补上加速代理的版本，放在列表末尾。"""
+    out = list(mirrors)
+    for url in mirrors:
+        if url.startswith("https://github.com/"):
+            for proxy in GITHUB_PROXIES:
+                if proxy + url not in out:
+                    out.append(proxy + url)
+    return out
+
+
+def _request_headers(url, have):
+    headers = {"User-Agent": "canaan-bootstrap"}
+    if have:
+        headers["Range"] = f"bytes={have}-"
+    if url.startswith("https://api.github.com/") and "/releases/assets/" in url:
+        headers["Accept"] = "application/octet-stream"   # API 的附件接口：不带这个返回的是 JSON 描述
+    return headers
+
+
 def download(mirrors, dest, expected_sha=None, expected_size=None, retries=3, timeout=30, progress=print):
     """下载到 dest.part（已有部分用 HTTP Range 续传），完成后校验 SHA-256 再改名。返回 True/False。"""
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     part = dest + ".part"
-    for url in mirrors:
+    for url in expand_mirrors(mirrors):
         for attempt in range(retries):
             have = os.path.getsize(part) if os.path.exists(part) else 0
             if expected_size and have > expected_size:  # 坏的残片
                 os.remove(part)
                 have = 0
-            req = urllib.request.Request(url, headers={"Range": f"bytes={have}-"} if have else {})
+            req = urllib.request.Request(url, headers=_request_headers(url, have))
             try:
                 with urllib.request.urlopen(req, timeout=timeout) as r:
                     if have and r.status != 206:  # 服务器不支持续传：从头下

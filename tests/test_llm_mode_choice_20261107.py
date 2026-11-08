@@ -217,6 +217,19 @@ def test_pull_falls_back_to_the_official_registry(monkeypatch):
     assert boot.ensure_ollama(manifest, "8gb", progress=lambda *_: None, variant="base") is False
 
 
+def test_github_links_get_proxy_fallbacks_at_the_end():
+    gh = "https://github.com/o/r/releases/download/v1/m.gguf"
+    out = boot.expand_mirrors(["https://gh-proxy.com/" + gh, gh, "https://modelscope.cn/x"])
+    assert out[:3] == ["https://gh-proxy.com/" + gh, gh, "https://modelscope.cn/x"]       # 原顺序不变
+    assert out[3:] == ["https://ghproxy.net/" + gh] and len(set(out)) == len(out)          # 只补没有的
+
+
+def test_api_asset_links_ask_for_the_binary():
+    h = boot._request_headers("https://api.github.com/repos/o/r/releases/assets/1", 10)
+    assert h["Accept"] == "application/octet-stream" and h["Range"] == "bytes=10-"
+    assert "Accept" not in boot._request_headers("https://github.com/o/r/releases/download/v1/m", 0)
+
+
 def test_failed_download_does_not_create_the_model(monkeypatch):
     manifest = {"ollama": [{"name": "tuned", "tiers": ["8gb"], "variant": "tuned",
                             "download": {"path": "models/t.gguf", "size": 3, "sha256": "x", "mirrors": ["u"]},
