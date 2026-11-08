@@ -1,8 +1,18 @@
 ﻿# 一键安装（双击仓库根目录的 一键安装.bat）：Python 3.12 → 虚拟环境 .venv → 依赖 → 首次设置（名字、大模型方式、下载模型）
 # → 需要时装 Ollama → 桌面快捷方式。可以反复运行：装过的会跳过，下载会续传。
 #   powershell -ExecutionPolicy Bypass -File installer\install.ps1 [-PipIndex <镜像>] [-NoShortcut] [-SkipSetup]
+# 不想被提问（脚本 / AI 代装）时把选择都用参数给出，例如：
+#   ... install.ps1 -Name 小安 -Llm local -LocalModel tuned
+#   ... install.ps1 -Name 小安 -Llm api -Provider deepseek        （密钥放环境变量 CANAAN_DEEPSEEK_API_KEY）
+#   ... install.ps1 -Name 小安 -Llm rules
 param(
     [string]$PipIndex = "",   # 不填就依次试清华、阿里云，最后官方源
+    [string]$Name = "",       # 助手名字，2–4 个汉字
+    [ValidateSet("", "local", "api", "rules")][string]$Llm = "",
+    [ValidateSet("", "base", "tuned")][string]$LocalModel = "",
+    [string]$Provider = "",   # -Llm api 时：deepseek / qwen / kimi / zhipu / siliconflow / openai / claude，或任意名字 + -BaseUrl
+    [string]$Model = "",
+    [string]$BaseUrl = "",
     [switch]$NoShortcut,
     [switch]$SkipSetup
 )
@@ -103,32 +113,54 @@ if ($LASTEXITCODE -ne 0) { Fail "依赖装完但导入失败，见上面的报�
 Ok "依赖"
 
 # ---------------------------------------------------------------- 4. 首次设置
-if (-not $SkipSetup) {
-    Step "首次设置：给助手起名字、选大模型方式、下载模型（可中断，重新运行会续传）"
-    & $vpy canaan.py bootstrap
-    $mode = & $vpy -c "import json,os; p=os.path.join('data','llm_providers.json'); print(json.load(open(p,encoding='utf-8')).get('mode','') if os.path.exists(p) else '')"
-    if ($mode -eq "local" -and -not (Get-Command ollama -ErrorAction SilentlyContinue)) {
-        Step "你选了本机模型，安装 Ollama"
-        if (Get-Command winget -ErrorAction SilentlyContinue) {
-            winget install -e --id Ollama.Ollama --silent --accept-package-agreements --accept-source-agreements | Out-Host
-        } else {
-            $exe = Join-Path $env:TEMP "OllamaSetup.exe"
-            if (Download @("https://ollama.com/download/OllamaSetup.exe") $exe) {
-                Start-Process -Wait -FilePath $exe -ArgumentList "/SILENT /SUPPRESSMSGBOXES /NORESTART"
-            }
-        }
-        $env:Path = [Environment]::GetEnvironmentVariable("Path", "User") + ";" + [Environment]::GetEnvironmentVariable("Path", "Machine")
-        if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
-            Warn "Ollama 没装上：请从 https://ollama.com 手动安装，然后重新双击 一键安装.bat"
-        } else {
-            for ($i = 0; $i -lt 30; $i++) {   # 等 Ollama 服务起来
-                & ollama list *> $null
-                if ($LASTEXITCODE -eq 0) { break }
-                Start-Sleep -Seconds 2
-            }
-            & $vpy canaan.py bootstrap --llm local
+function Install-Ollama {
+    if (Get-Command ollama -ErrorAction SilentlyContinue) { return $true }
+    Step "安装 Ollama（本机模型要用）"
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        winget install -e --id Ollama.Ollama --silent --accept-package-agreements --accept-source-agreements | Out-Host
+    } else {
+        $exe = Join-Path $env:TEMP "OllamaSetup.exe"
+        if (Download @("https://ollama.com/download/OllamaSetup.exe") $exe) {
+            Start-Process -Wait -FilePath $exe -ArgumentList "/SILENT /SUPPRESSMSGBOXES /NORESTART"
         }
     }
+    $env:Path = [Environment]::GetEnvironmentVariable("Path", "User") + ";" + [Environment]::GetEnvironmentVariable("Path", "Machine")
+    if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+        Warn "Ollama 没装上：请从 https://ollama.com 手动安装，然后重新运行安装"
+        return $false
+    }
+    for ($i = 0; $i -lt 30; $i++) {   # 等 Ollama 服务起来
+        & ollama list *> $null
+        if ($LASTEXITCODE -eq 0) { break }
+        Start-Sleep -Seconds 2
+    }
+    return $true
+}
+
+if (-not $SkipSetup) {
+    Step "首次设置：给助手起名字、选大模型方式、下载模型（可中断，重新运行会续传）"
+    $bootArgs = @()
+    if ($Name) { $bootArgs += @("--name", $Name) }
+    if ($Llm) { $bootArgs += @("--llm", $Llm) }
+    if ($LocalModel) { $bootArgs += @("--local-model", $LocalModel) }
+    if ($Provider) { $bootArgs += @("--provider", $Provider) }
+    if ($Model) { $bootArgs += @("--model", $Model) }
+    if ($BaseUrl) { $bootArgs += @("--base-url", $BaseUrl) }
+    if ($Llm -eq "local") { Install-Ollama | Out-Null }   # 已经知道要本机模型：先装 Ollama，一次走完
+    & $vpy canaan.py bootstrap @bootArgs
+    $bootExit = $LASTEXITCODE
+    if ($bootExit -eq 2) { Fail "首次设置的参数不对，见上面的提示" }
+    $mode = & $vpy -c "import json,os; p=os.path.join('data','llm_providers.json'); print(json.load(open(p,encoding='utf-8')).get('mode','') if os.path.exists(p) else '')"
+    if ($mode -eq "local" -and -not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+        # 交互时才知道选了本机模型：现在装 Ollama，再把模型补上
+        if (Install-Ollama) {
+            $more = @("--llm", "local")
+            if ($LocalModel) { $more += @("--local-model", $LocalModel) }
+            & $vpy canaan.py bootstrap @more
+            $bootExit = $LASTEXITCODE
+        }
+    }
+    if ($bootExit -ne 0) { Warn "首次设置还有没完成的项目（见上），重新运行安装会续传" }
 }
 
 # ---------------------------------------------------------------- 5. 快捷方式

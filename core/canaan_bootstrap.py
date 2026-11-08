@@ -353,6 +353,40 @@ def save_local_model(variant, llm=None):
     llm.save_config(cfg)
 
 
+def configure_cloud(name, model=None, base_url=None, out=print, llm=None):
+    """不交互地配置云端服务（给脚本 / AI 安装用）：密钥不经过命令行，读环境变量 CANAAN_<名字>_API_KEY，
+    或之后由用户自己运行 tools/llm_provider.py --set-key <名字> 输入。返回服务名，参数不对返回 None。"""
+    if llm is None:
+        import canaan_llm_provider as llm
+    choices = {c[0]: c for c in CLOUD_CHOICES}
+    if name not in choices and not base_url:
+        out(f"[!] 不认识的服务 {name}：可选 {', '.join(c for c in choices if c != 'custom')}，或者给 --base-url 用任意 OpenAI 兼容接口")
+        return None
+    _, label, kind, default_model = choices.get(name, (name, name, "openai", ""))
+    model = model or default_model
+    if not model:
+        out("[!] 需要 --model 指定模型名")
+        return None
+    entry = {"kind": kind, "model": model}
+    if base_url:
+        if not base_url.startswith(("http://", "https://")):
+            out("[!] --base-url 要以 http:// 或 https:// 开头")
+            return None
+        entry["base_url"] = base_url
+    cfg = llm.load_config()
+    cfg.setdefault("providers", {})[name] = entry
+    cfg.update({"chat": name, "intent": name, "mode": "api"})
+    cfg.setdefault("send_memory", False)
+    llm.save_config(cfg)
+    env = f"CANAAN_{name.upper()}_API_KEY"
+    out(f"[✓] 云端服务：{label}，模型 {model}")
+    if os.environ.get(env):
+        out(f"    密钥：读环境变量 {env}")
+    else:
+        out(f"[!] 还没有密钥：设置环境变量 {env}，或运行 python tools/llm_provider.py --set-key {name}（输入时不显示）")
+    return name
+
+
 def save_mode(mode, llm=None):
     if llm is None:
         import canaan_llm_provider as llm
@@ -394,7 +428,11 @@ def main(argv=None):
                     help="大模型方式：local 本机 / api 云端 / rules 只用规则；默认第一次运行时问")
     ap.add_argument("--name", help="给助手改名字（2–4 个汉字），唤醒词、显示名、人设一起换")
     ap.add_argument("--local-model", choices=("base", "tuned"),
-                    help="8GB 显存时本机 3B 用哪版：base 原版 Qwen2.5-3B / tuned 作者微调版；默认问")
+                    help="8GB 显存时本机 3B 用哪版：base 原版 Qwen2.5-3B / tuned 作者微调版；默认问，不能交互时用 tuned")
+    ap.add_argument("--provider", help="--llm api 时不交互地指定服务：deepseek / qwen / kimi / zhipu / siliconflow / openai / claude，"
+                                       "或任意名字 + --base-url；密钥用环境变量 CANAAN_<名字>_API_KEY")
+    ap.add_argument("--model", help="云端模型名，不填用该服务的默认模型")
+    ap.add_argument("--base-url", help="OpenAI 兼容接口地址（自建中转等）")
     args = ap.parse_args(argv)
     manifest = json.load(open(MANIFEST, encoding="utf-8"))
     import canaan_config
@@ -415,9 +453,19 @@ def main(argv=None):
             mode = ask_mode(tier, vram) if (not args.check and sys.stdin and sys.stdin.isatty()) else recommend_mode(tier)
             if mode == "api" and (args.check or not (sys.stdin and sys.stdin.isatty())):
                 mode = "rules" if tier == "4gb" else "local"   # 不能交互时不替用户填密钥
+    if args.provider and mode != "api":
+        print("[!] --provider 只在 --llm api 时有用")
+        return 2
     if not args.check:
         if mode == "api":
-            if llm.load_config().get("mode") != "api" or args.llm == "api":
+            if args.provider:
+                if configure_cloud(args.provider, args.model, args.base_url) is None:
+                    return 2
+            elif llm.load_config().get("mode") != "api" or args.llm == "api":
+                if not interactive:
+                    print("[!] 不能交互时要用 --provider 指定云端服务（例如 --llm api --provider deepseek），"
+                          "密钥放环境变量 CANAAN_<服务名>_API_KEY")
+                    return 2
                 if setup_cloud() is None:
                     mode = "rules"
                     save_mode(mode)
@@ -436,8 +484,8 @@ def main(argv=None):
                 variant = next((k for k, v in LOCAL_MODELS.items() if v == saved), None)
             if variant is None:
                 variant = "base"
-                if tier == "8gb" and has_variant(manifest, "tuned") and interactive:
-                    variant = ask_local_variant()
+                if tier == "8gb" and has_variant(manifest, "tuned"):
+                    variant = ask_local_variant() if interactive else "tuned"   # 不能交互时用推荐的那版
             if tier == "8gb" and not args.check:
                 save_local_model(variant)
             b = ensure_ollama(manifest, tier, args.check, variant=variant)

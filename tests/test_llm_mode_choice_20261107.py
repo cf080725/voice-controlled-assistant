@@ -136,6 +136,49 @@ def test_no_config_keeps_the_vram_tier(reload_config):
     assert c.LLM_ENABLED is False and c.LOCAL_LLM_ENABLED is False
 
 
+def test_configure_cloud_without_prompts_never_takes_a_key_argument(monkeypatch):
+    monkeypatch.setenv("CANAAN_DEEPSEEK_API_KEY", "sk-env")
+    fake, out = FakeLLM(), []
+    assert boot.configure_cloud("deepseek", out=out.append, llm=fake) == "deepseek"
+    assert fake.cfg["providers"]["deepseek"] == {"kind": "openai", "model": "deepseek-chat"}
+    assert fake.cfg["chat"] == fake.cfg["intent"] == "deepseek" and fake.cfg["mode"] == "api"
+    assert "sk-env" not in json.dumps(fake.cfg) and any("环境变量" in line for line in out)
+
+
+def test_configure_cloud_custom_endpoint_and_bad_input():
+    fake, out = FakeLLM(), []
+    assert boot.configure_cloud("relay", "m1", "https://relay.example/v1", out=out.append, llm=fake) == "relay"
+    assert fake.cfg["providers"]["relay"] == {"kind": "openai", "model": "m1", "base_url": "https://relay.example/v1"}
+    assert boot.configure_cloud("nope", out=out.append, llm=FakeLLM()) is None
+    assert boot.configure_cloud("relay", "m1", "ftp://x", out=out.append, llm=FakeLLM()) is None
+
+
+def _noninteractive(monkeypatch, fake, tier="8gb"):
+    monkeypatch.setattr(llm, "load_config", fake.load_config)
+    monkeypatch.setattr(llm, "save_config", fake.save_config)
+    monkeypatch.setattr(boot, "ensure_files", lambda manifest, check: True)
+    monkeypatch.setattr(canaan_config, "ACTIVE_TIER", tier)
+    monkeypatch.setattr(boot.sys, "stdin", SimpleNamespace(isatty=lambda: False))
+
+
+def test_noninteractive_api_needs_a_provider(monkeypatch):
+    fake = FakeLLM()
+    _noninteractive(monkeypatch, fake)
+    monkeypatch.setattr(boot, "setup_cloud", lambda *a, **k: pytest.fail("不能交互时不该提问"))
+    assert boot.main(["--llm", "api"]) == 2
+    assert boot.main(["--llm", "api", "--provider", "qwen"]) == 0
+    assert fake.cfg["mode"] == "api" and fake.cfg["providers"]["qwen"]["model"] == "qwen-plus"
+
+
+def test_noninteractive_local_on_8gb_picks_the_tuned_model(monkeypatch):
+    fake, seen = FakeLLM(), {}
+    _noninteractive(monkeypatch, fake)
+    monkeypatch.setattr(boot, "ensure_ollama", lambda m, t, c, variant: seen.setdefault("variant", variant) or True)
+    assert boot.main(["--llm", "local"]) == 0
+    assert seen["variant"] == "tuned" and fake.cfg["local_model"] == "canaan-tuned:3b"
+    assert boot.main(["--llm", "local", "--local-model", "base"]) == 0
+
+
 def test_local_variant_prompt_defaults_to_the_tuned_model():
     assert boot.ask_local_variant(ask=answers(""), out=lambda *_: None) == "tuned"
     assert boot.ask_local_variant(ask=answers("x", "1"), out=lambda *_: None) == "base"
