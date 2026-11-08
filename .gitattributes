@@ -1,0 +1,4 @@
+# Windows 脚本检出 / 下载 ZIP 时用 CRLF（cmd 解析纯 LF 的批处理会出错）
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
