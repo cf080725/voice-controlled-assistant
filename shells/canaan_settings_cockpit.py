@@ -33,6 +33,15 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _launch(*parts, console=False):
+    """用当前解释器启动仓库里的脚本（一键安装用虚拟环境，写死 py -3.12 会找不到依赖）。"""
+    import subprocess
+    args = list(parts[:-1]) + [parts[-1]] if parts[0] == "-m" else [os.path.join(BASE_DIR, parts[0], parts[1]), *parts[2:]]
+    exe = sys.executable.replace("pythonw.exe", "python.exe") if console else sys.executable
+    flags = 0x00000010 if console else 0   # CREATE_NEW_CONSOLE：单测要看得到输出
+    return subprocess.Popen([exe, *args], cwd=BASE_DIR, creationflags=flags)
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
@@ -597,9 +606,9 @@ class CanaanSettingsCockpit(tk.Tk):
         btn_f = tk.Frame(card_f, bg="#161824")
         btn_f.pack(fill=tk.X, pady=(10, 0))
         tk.Button(btn_f, text="🧭 打开智能体任务看板", bg="#6366f1", fg="#ffffff", relief=tk.FLAT, font=("Microsoft YaHei UI", 9, "bold"), padx=10, pady=4,
-                  command=lambda: os.system("start py -3.12 plugins\\canaan_agent_board.py")).pack(side=tk.LEFT, padx=(0, 10))
+                  command=lambda: _launch("plugins", "canaan_agent_board.py")).pack(side=tk.LEFT, padx=(0, 10))
         tk.Button(btn_f, text="🔄 一键自愈拉起集群后台服务", bg="#2a2b3d", fg="#e2e8f0", relief=tk.FLAT, font=("Microsoft YaHei UI", 9), padx=10, pady=4,
-                  command=lambda: os.system("start py -3.12 canaan_agent_service_manager.py ensure")).pack(side=tk.LEFT)
+                  command=lambda: _launch("plugins", "canaan_agent_service_manager.py", "ensure")).pack(side=tk.LEFT)
 
         # Computer Use Section
         tk.Label(box, text="🖥️ 全自主桌面控制引擎 (Canaan Computer Use · Codex/Operator 级)",
@@ -631,7 +640,7 @@ class CanaanSettingsCockpit(tk.Tk):
         tk.Button(cu_btn_f, text="⚡ 运行 Computer Use 引擎自检", bg="#38bdf8", fg="#000000", relief=tk.FLAT, font=("Microsoft YaHei UI", 9, "bold"), padx=10, pady=4,
                   command=_test_cu).pack(side=tk.LEFT, padx=(0, 10))
         tk.Button(cu_btn_f, text="🧪 运行自动化单测集", bg="#2a2b3d", fg="#e2e8f0", relief=tk.FLAT, font=("Microsoft YaHei UI", 9), padx=10, pady=4,
-                  command=lambda: os.system("start py -3.12 -m pytest tests/test_computer_use.py -v")).pack(side=tk.LEFT)
+                  command=lambda: _launch("-m", "pytest", "tests/test_computer_use.py", "-v", console=True)).pack(side=tk.LEFT)
 
     def _build_tab_briefing(self, parent):
         box = tk.Frame(parent, bg="#13141f")

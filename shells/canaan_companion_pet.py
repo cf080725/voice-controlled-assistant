@@ -28,6 +28,7 @@ Inspired by top open-source GitHub projects:
 - SeakMengs/WindowPet: Frameless transparent overlay with zero GPU VRAM overhead
 """
 import os
+import subprocess
 import sys
 import threading
 import math
@@ -1907,7 +1908,7 @@ class CanaanPetCore:
             menu.add_command(label="☀️ 今日早报（团团播报）", command=lambda: self.run_briefing(auto=False))
             menu.add_command(label="📲 把今日早报发到手机（文件传输助手）", command=self.push_briefing_now)
         menu.add_command(label="退出团团（Ctrl+Alt+Q）", command=self.request_exit)
-        menu.add_command(label="⚙️ 打开设置大屏 (Cockpit)", command=lambda: os.system("start py -3.12 shells\\canaan_settings_cockpit.py"))
+        menu.add_command(label="⚙️ 打开设置大屏 (Cockpit)", command=lambda: subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "shells", "canaan_settings_cockpit.py")], cwd=BASE_DIR))
         menu.add_command(label="🧭 智能体任务看板（Muse / Dots）", command=self.open_agent_board)
         menu.add_command(label="🖥️ 电脑自主控制 (Computer Use) 诊断与测试", command=self.test_computer_use)
         hub = getattr(self.master, "hub_instance", None) or getattr(self, "hub", None)

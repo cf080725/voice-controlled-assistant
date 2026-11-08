@@ -57,14 +57,22 @@ python tools/llm_provider.py --list       # 看现在用的哪个服务、有没
 
 > 云端 API 目前只接管“听懂指令”和“陪你聊天”。消息总结、本地知识库问答、界面自动操作、记忆自动整理仍然只用本机模型，没装本机模型时这几项不可用；你明确说的“记住……”照常保存。
 
-## 安装
+## 安装（一键）
 
-1. 安装 Python 3.12。选本机模型的话再装 [Ollama](https://ollama.com)。
-2. 安装依赖：`pip install -r requirements.txt`（用 Claude 的话再 `pip install anthropic`）。
-3. 首次运行：`python canaan.py bootstrap`。它会先问你给助手起什么名字，再问大模型用哪种方式，然后下载需要的模型（支持断点续传，校验 SHA-256）。
-4. 启动：`python canaan.py`（托盘版）。其他组件见 `python canaan.py --help`。
+1. 下载本仓库：点右上角绿色的 **Code → Download ZIP**，解压到一个**路径里没有空格和中文的文件夹**，比如 `D:\voice-assistant`。
+2. 双击 **`一键安装.bat`**，按提示操作：
+   - 没有 Python 3.12 会自动安装（只装给当前用户）；
+   - 依赖装在文件夹里的 `.venv`，不影响电脑上别的 Python，国内默认走清华镜像；
+   - 问你给助手起什么名字、大模型用哪种方式，然后下载需要的模型；
+   - 选了本机模型又没装 Ollama 时，会自动装上；
+   - 最后在桌面放一个以助手名字命名的快捷方式。
+3. 双击桌面快捷方式（或文件夹里的 `启动.bat`）启动，右下角托盘出现图标就是在运行了。
 
-没有装 GPT-SoVITS 时，语音合成自动用 Windows 自带的中文语音。安装包脚本仍需补齐 Tcl/Tk 运行时并在干净系统验收；当前请按上述源码安装步骤使用。
+第一次安装要下载 1–2 GB 依赖，选本机模型再加约 2 GB，视网速需要十几分钟到一小时；中途断了重新双击 `一键安装.bat` 即可，装好的会跳过、下载会续传。用 Claude 的话再运行 `.venv\Scripts\python.exe -m pip install anthropic`。
+
+没有装 GPT-SoVITS 时，语音合成自动用 Windows 自带的中文语音。
+
+手动安装：Python 3.12 → `pip install -r requirements-lock.txt` → `python canaan.py bootstrap` → `python canaan.py`。
 
 ## 隐私与数据
 

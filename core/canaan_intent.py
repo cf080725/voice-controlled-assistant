@@ -4144,6 +4144,17 @@ def _canonicalize_media_decision(text, decision, *, rules=False):
     return {**decision, "param": updated}
 
 
+def _cockpit_command():
+    """打开设置大屏：用正在运行的解释器（一键安装装在虚拟环境里，写死 py -3.12 会找不到依赖），路径带引号防空格。"""
+    import sys
+    exe = sys.executable
+    windowed = os.path.join(os.path.dirname(exe), "pythonw.exe")
+    if os.path.exists(windowed):
+        exe = windowed
+    script = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "shells", "canaan_settings_cockpit.py")
+    return f"Start-Process -FilePath \"{exe}\" -ArgumentList '\"{script}\"'"
+
+
 def fast_match_intent(text):
     return _canonicalize_media_decision(text, _fast_match_intent_impl(text), rules=True)
 
@@ -5733,7 +5744,7 @@ def _fast_match_single_impl(text):
 
     # 商业可视化控制台大屏直通通道 (Settings Cockpit)
     if re.search(r'(?:设置大屏|控制大屏|配置中心|商业设置|团团设置|设置中心|控制台大屏|商业控制台)', clean, re.I):
-        return {"action": "run_cmd", "param": "py -3.12 shells\\canaan_settings_cockpit.py", "emotion": "pamper", "reply": "好的亲爱的，这就为你展开全域商业控制大屏~"}
+        return {"action": "run_cmd", "param": _cockpit_command(), "emotion": "pamper", "reply": "好的亲爱的，这就为你展开全域商业控制大屏~"}
 
     # 每日高管消息情报晨报直通通道 (Daily Briefing & Todos)
     # 引号里是要发的正文，不拿来判断（“给小何发‘清单我来整理’”不是要总结消息）；“给 X 发……”本身就是发消息

@@ -536,7 +536,7 @@ def run_tray(sup):
                          cwd=BASE_DIR)
 
     def open_cockpit(icon, item):
-        subprocess.Popen(["py", "-3.12", os.path.join(BASE_DIR, "shells", "canaan_settings_cockpit.py")], cwd=BASE_DIR)
+        subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "shells", "canaan_settings_cockpit.py")], cwd=BASE_DIR)  # 当前解释器（虚拟环境里装的依赖才找得到）
 
     def open_logs(icon, item):
         os.startfile(LOG_DIR)
