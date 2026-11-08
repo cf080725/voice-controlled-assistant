@@ -136,6 +136,46 @@ def test_no_config_keeps_the_vram_tier(reload_config):
     assert c.LLM_ENABLED is False and c.LOCAL_LLM_ENABLED is False
 
 
+def test_local_variant_prompt_defaults_to_the_tuned_model():
+    assert boot.ask_local_variant(ask=answers(""), out=lambda *_: None) == "tuned"
+    assert boot.ask_local_variant(ask=answers("x", "1"), out=lambda *_: None) == "base"
+
+
+def test_only_the_chosen_3b_is_downloaded(monkeypatch, tmp_path):
+    manifest = {"ollama": [
+        {"name": "base", "tiers": ["8gb"], "variant": "base", "steps": [["ollama", "pull", "qwen"]]},
+        {"name": "tuned", "tiers": ["8gb"], "variant": "tuned",
+         "download": {"path": "models/t.gguf", "size": 3, "sha256": "x", "mirrors": ["https://example.invalid/t"]},
+         "steps": [["ollama", "create", "canaan-tuned:3b", "-f", "resources/Modelfile_tuned_3b"]]},
+        {"name": "1.5b", "tiers": ["8gb", "6gb"], "steps": [["ollama", "cp", "a", "canaan-desk:1.5b"]]}]}
+    ran, fetched = [], []
+    monkeypatch.setattr(boot, "ollama_models", lambda: set())
+    monkeypatch.setattr(boot.subprocess, "run", lambda step, cwd=None: ran.append(step) or SimpleNamespace(returncode=0))
+    monkeypatch.setattr(boot, "download", lambda mirrors, dest, sha, size, progress=print: fetched.append(dest) or True)
+    assert boot.ensure_ollama(manifest, "8gb", progress=lambda *_: None, variant="tuned")
+    assert [s[1] for s in ran] == ["create", "cp"] and len(fetched) == 1      # 原版 3B 不 pull
+    ran.clear(), fetched.clear()
+    assert boot.ensure_ollama(manifest, "8gb", progress=lambda *_: None, variant="base")
+    assert [s[1] for s in ran] == ["pull", "cp"] and fetched == []            # 不下微调版
+
+
+def test_failed_download_does_not_create_the_model(monkeypatch):
+    manifest = {"ollama": [{"name": "tuned", "tiers": ["8gb"], "variant": "tuned",
+                            "download": {"path": "models/t.gguf", "size": 3, "sha256": "x", "mirrors": ["u"]},
+                            "steps": [["ollama", "create", "canaan-tuned:3b"]]}]}
+    monkeypatch.setattr(boot, "ollama_models", lambda: set())
+    monkeypatch.setattr(boot.subprocess, "run", lambda *a, **k: pytest.fail("下载失败时不该 create"))
+    monkeypatch.setattr(boot, "download", lambda *a, **k: False)
+    assert boot.ensure_ollama(manifest, "8gb", progress=lambda *_: None, variant="tuned") is False
+
+
+def test_chosen_local_model_is_used_for_chat_and_intent_on_8gb(reload_config):
+    c = reload_config({"mode": "local", "local_model": "canaan-tuned:3b"}, "8gb")
+    assert c.CHAT_MODEL == c.INTENT_COMPACT_MODEL == "canaan-tuned:3b"
+    c = reload_config({"mode": "local", "local_model": "canaan-tuned:3b"}, "6gb")
+    assert c.CHAT_MODEL != "canaan-tuned:3b"                                   # 6GB 跑不了 3B，按档位来
+
+
 def test_noninteractive_bootstrap_never_asks_for_a_key(monkeypatch, tmp_path):
     fake = FakeLLM()
     monkeypatch.setattr(llm, "load_config", fake.load_config)

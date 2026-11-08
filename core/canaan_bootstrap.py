@@ -188,7 +188,8 @@ def ollama_models():
         return None
 
 
-def ensure_ollama(manifest, tier, check_only=False, progress=print):
+def ensure_ollama(manifest, tier, check_only=False, progress=print, variant="base"):
+    """variant：8GB 档的 3B 用哪一版（base 原版 Qwen2.5-3B / tuned 作者微调版），只装选中的那一个。"""
     have = ollama_models()
     if have is None:
         progress("[!] 没找到 Ollama：请先安装 Ollama（https://ollama.com，或国内镜像）后重新运行")
@@ -196,6 +197,8 @@ def ensure_ollama(manifest, tier, check_only=False, progress=print):
     ok_all = True
     for item in manifest["ollama"]:
         if tier not in item["tiers"]:
+            continue
+        if item.get("variant") and item["variant"] != variant:
             continue
         last = item["steps"][-1]
         target = last[-1] if last[1] == "cp" else last[2]
@@ -211,6 +214,15 @@ def ensure_ollama(manifest, tier, check_only=False, progress=print):
             progress(f"[-] {item['name']}：缺少 {req}，跳过（意图识别会退回原版模型链）")
             continue
         progress(f"[↓] {item['name']}")
+        dl = item.get("download")
+        if dl:
+            dest = os.path.join(BASE_DIR, dl["path"])
+            if not (os.path.exists(dest) and os.path.getsize(dest) == dl["size"] and sha256(dest) == dl["sha256"]):
+                progress(f"    下载 {dl['size'] / 1e9:.1f} GB（可中断，重新运行会续传）")
+                if not download(dl["mirrors"], dest, dl["sha256"], dl["size"], progress=progress):
+                    progress(f"[!] {item['name']} 下载失败（可稍后重新运行，会续传）")
+                    ok_all = False
+                    continue
         for step in item["steps"]:
             r = subprocess.run(step, cwd=BASE_DIR)
             if r.returncode != 0:
@@ -315,6 +327,32 @@ def setup_cloud(ask=input, ask_secret=None, out=print, llm=None, test=True):
     return name
 
 
+LOCAL_MODELS = {"base": "canaan-chat:3b", "tuned": "canaan-tuned:3b"}
+
+
+def has_variant(manifest, variant):
+    return any(item.get("variant") == variant for item in manifest.get("ollama", []))
+
+
+def ask_local_variant(ask=input, out=print):
+    out("8 GB 显存跑 3B 模型，有两版可选（都约 1.9 GB，只下载你选的那个）：")
+    out("  1. 原版 Qwen2.5-3B-Instruct")
+    out("  2. 作者微调版：在原版上针对本项目的指令识别训练过，听懂指令更准，陪聊风格和原版接近  ← 推荐")
+    while True:
+        choice = ask("请选择 [1/2]（直接回车 = 2）：").strip() or "2"
+        if choice in ("1", "2"):
+            return ("base", "tuned")[int(choice) - 1]
+        out("请输入 1 或 2")
+
+
+def save_local_model(variant, llm=None):
+    if llm is None:
+        import canaan_llm_provider as llm
+    cfg = llm.load_config()
+    cfg["local_model"] = LOCAL_MODELS[variant]
+    llm.save_config(cfg)
+
+
 def save_mode(mode, llm=None):
     if llm is None:
         import canaan_llm_provider as llm
@@ -323,6 +361,26 @@ def save_mode(mode, llm=None):
     if mode in ("local", "rules"):
         cfg["chat"] = cfg["intent"] = "local"
     llm.save_config(cfg)
+
+
+def setup_name(name, cfg, out=print):
+    """改名字：唤醒词、显示名、人设里的自称一起换（只写本机 data/）。成功返回新名字。"""
+    import canaan_assistant_name as an
+    try:
+        from canaan_companion import load_persona_prompt
+        persona = load_persona_prompt()
+    except Exception:
+        persona = ""
+    try:
+        profile = an.rename(name, old_name=cfg.ASSISTANT_NAME, persona_text=persona, kws_dir=cfg.KWS_DIR)
+    except an.InvalidName as e:
+        out(f"[!] {e}")
+        return None
+    except ImportError:
+        out("[!] 缺少 pypinyin：先运行 pip install -r requirements.txt")
+        return None
+    out(f"[✓] 名字改成“{profile['assistant_name']}”，喊“{'”或“'.join(profile['wake_phrases'][:2])}”就能叫醒；重启生效")
+    return profile["assistant_name"]
 
 
 def main(argv=None):
@@ -334,12 +392,22 @@ def main(argv=None):
     ap.add_argument("--check", action="store_true", help="只检查不下载")
     ap.add_argument("--llm", choices=("ask",) + MODES, default="ask",
                     help="大模型方式：local 本机 / api 云端 / rules 只用规则；默认第一次运行时问")
+    ap.add_argument("--name", help="给助手改名字（2–4 个汉字），唤醒词、显示名、人设一起换")
+    ap.add_argument("--local-model", choices=("base", "tuned"),
+                    help="8GB 显存时本机 3B 用哪版：base 原版 Qwen2.5-3B / tuned 作者微调版；默认问")
     args = ap.parse_args(argv)
     manifest = json.load(open(MANIFEST, encoding="utf-8"))
     import canaan_config
     import canaan_llm_provider as llm
     tier, vram = canaan_config.ACTIVE_TIER, canaan_config.DETECTED_VRAM_MB
     print(f"显存档位：{tier}（检测到 {vram} MB）")
+    interactive = not args.check and bool(sys.stdin) and sys.stdin.isatty()
+    if args.name:
+        setup_name(args.name, canaan_config)
+    elif interactive and not os.path.exists(os.path.join(BASE_DIR, "data", "assistant_profile.json")):
+        wanted = input(f"给助手起个名字（2–4 个汉字，直接回车 = {canaan_config.ASSISTANT_NAME}）：").strip()
+        if wanted and wanted != canaan_config.ASSISTANT_NAME:
+            setup_name(wanted, canaan_config)
     mode = args.llm
     if mode == "ask":
         mode = llm.load_config().get("mode")
@@ -362,7 +430,17 @@ def main(argv=None):
         if tier == "4gb":
             print("[!] 显存不够跑本机大模型：建议改用云端 API（python canaan.py bootstrap --llm api）")
         else:
-            b = ensure_ollama(manifest, tier, args.check)
+            variant = args.local_model
+            if variant is None:
+                saved = llm.load_config().get("local_model")
+                variant = next((k for k, v in LOCAL_MODELS.items() if v == saved), None)
+            if variant is None:
+                variant = "base"
+                if tier == "8gb" and has_variant(manifest, "tuned") and interactive:
+                    variant = ask_local_variant()
+            if tier == "8gb" and not args.check:
+                save_local_model(variant)
+            b = ensure_ollama(manifest, tier, args.check, variant=variant)
     print("全部就绪" if a and b else "还有未完成的项目，见上（可重新运行，会续传）")
     print("之后想换方式：python canaan.py bootstrap --llm local / api / rules；改完重启生效")
     return 0 if a and b else 1

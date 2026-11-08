@@ -100,6 +100,8 @@ def _apply_edition(path=EDITION_FILE, target=None):
 
 
 _apply_edition()
+# 本机改过名字（python canaan.py bootstrap --name XX）：data/assistant_profile.json 覆盖名字、唤醒词、人设，不进仓库
+_apply_edition(os.path.join(BASE_DIR, "data", "assistant_profile.json"))
 
 ARCHIVED_MODELS_DIR =os.path.join(BASE_DIR, "archive", "models")
 
@@ -267,6 +269,9 @@ try:
     import canaan_llm_provider as _llm
     _llm_cfg = _llm.load_config()
     LLM_MODE = _llm_cfg.get("mode") if _llm_cfg.get("mode") in ("local", "api", "rules") else "local"
+    _local_model = _llm_cfg.get("local_model")
+    if LLM_MODE == "local" and ACTIVE_TIER == "8gb" and isinstance(_local_model, str) and _local_model:
+        CHAT_MODEL = INTENT_COMPACT_MODEL = _local_model   # bootstrap 里选的 3B（原版或作者微调版），意图和陪聊共用
     if LLM_MODE == "rules":
         LLM_ENABLED = LOCAL_LLM_ENABLED = COMPANION_ENABLED = False
     else:

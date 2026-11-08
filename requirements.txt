@@ -8,6 +8,7 @@ sounddevice>=0.4.6
 soundfile>=0.12.1
 numpy>=1.24.0
 sherpa-onnx>=1.10.0
+pypinyin>=0.50          # 改名字时生成唤醒词（拼音）
 
 # 2. 语音识别与模型推理 (可选 SenseVoice / Whisper)
 faster-whisper>=1.0.0

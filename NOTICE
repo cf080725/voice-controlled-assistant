@@ -9,6 +9,11 @@
 - bge-small-zh-v1.5（记忆检索）
 - requirements*.txt 中列出的 Python 依赖
 
+作者微调版模型 canaan-tuned:3b（可选，由 bootstrap 从本仓库 GitHub Release 下载，不在仓库里）：
+- 在 Qwen2.5-3B-Instruct 上做了 LoRA 微调并合并、量化为 GGUF（Q4_K_M），权重已被修改；
+- Qwen is licensed under the Qwen RESEARCH LICENSE AGREEMENT, Copyright (c) Alibaba Cloud. All Rights Reserved.
+- 许可原文见 resources/LICENSE-Qwen-Research.txt，仅限非商业研究用途；Built with Qwen。
+
 默认桌宠形象“团团”由 shells/canaan_default_pack.py 用代码生成，与本项目代码使用同一许可。
 
 本项目不提供、也不支持解密、绕过或模拟操作任何第三方客户端。

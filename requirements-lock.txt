@@ -97,6 +97,7 @@ setuptools==84.0.0
 shapely==2.1.2
 shellingham==1.5.4
 sherpa_onnx==1.13.8
+pypinyin==0.55.0
 sherpa-onnx-core==1.13.8
 six==1.17.0
 sounddevice==0.5.6

@@ -15,13 +15,23 @@
 - **桌宠**：默认形象“团团”是用代码画的原创形象。你可以导入自己的形象包，格式见 [docs/PET_PACK_FORMAT.md](docs/PET_PACK_FORMAT.md)。默认开启平静模式：只在需要你的时候出现。
 - **本机接口**：给外部客户端单独发令牌，按能力和资料范围授权；外部客户端永远拿不到“确认执行”。详见 [docs/INTEGRATION_API.md](docs/INTEGRATION_API.md)、[docs/PERMISSIONS.md](docs/PERMISSIONS.md)。
 
+## 给她起个名字
+
+默认叫“团团”。第一次运行 `bootstrap` 时可以换成你喜欢的名字（2–4 个汉字），之后也能改：
+
+```
+python canaan.py bootstrap --name 小安
+```
+
+唤醒词（“小安”“你好小安”“小安小安”）、界面上显示的名字、陪聊时的自称会一起换，改完重启生效。名字只存在你电脑的 `data/` 目录里。
+
 ## 先选大模型怎么跑
 
 唤醒词、端点检测、语音识别都是 CPU 上的小模型，三种方式都一样；区别只在“听懂意思、陪你聊天”的大模型：
 
 | 方式 | 适合 | 要什么 | 花费 | 隐私 |
 | :--- | :--- | :--- | :--- | :--- |
-| **本机模型** | 有 6 GB 以上显存的 NVIDIA 显卡 | [Ollama](https://ollama.com)；8 GB 显存跑 Qwen2.5-3B（约占 2.5 GB），6 GB 跑 1.5B | 免费 | 全部在本机 |
+| **本机模型** | 有 6 GB 以上显存的 NVIDIA 显卡 | [Ollama](https://ollama.com)；8 GB 显存跑 3B（约占 2.5 GB，可选原版 Qwen2.5-3B 或作者微调版），6 GB 跑 1.5B | 免费 | 全部在本机 |
 | **云端 API** | 没有独显、显存小、轻薄本 | 一个服务商的 API 密钥：DeepSeek、通义千问、Kimi、智谱、硅基流动、OpenAI、Claude，或任何 OpenAI 兼容接口 | 按用量付费 | 你说的话会发给所选服务商；长期记忆和本机资料默认**不**发 |
 | **只用规则** | 只想要语音开软件、调音量、截图这类固定指令 | 什么都不用 | 免费 | 全部在本机 |
 
@@ -34,6 +44,15 @@ python canaan.py bootstrap --llm rules    # 只用规则
 python tools/llm_provider.py --list       # 看现在用的哪个服务、有没有密钥
 ```
 
+**作者微调版**：在 Qwen2.5-3B-Instruct 上针对本项目的指令识别做了 LoRA 微调，陪聊风格和原版接近；训练数据里的真实人名和游戏角色都已去掉。
+
+在作者写的 16 个题集（共 1788 句）上，只看模型本身的输出、不加规则和守卫时：
+
+- 原版：完整判断正确 45.6%，不该执行却执行 186 次；
+- 微调版：完整判断正确 63.2%，不该执行却执行 135 次。
+
+详见 [Release model-v1](https://github.com/cf080725/voice-controlled-assistant/releases/tag/model-v1)。8 GB 显存选本机模型时会问你要哪一版，只下载选中的那个（都约 1.9 GB）；之后可以用 `python canaan.py bootstrap --local-model tuned` 或 `--local-model base` 切换。它沿用 Qwen2.5-3B 的许可（非商业研究用途）。
+
 改完重启生效。云端密钥加密保存在本机 `data/secrets.db`，也可以用环境变量 `CANAAN_<服务名>_API_KEY`（例如 `CANAAN_DEEPSEEK_API_KEY`）。
 
 > 云端 API 目前只接管“听懂指令”和“陪你聊天”。消息总结、本地知识库问答、界面自动操作、记忆自动整理仍然只用本机模型，没装本机模型时这几项不可用；你明确说的“记住……”照常保存。
@@ -42,7 +61,7 @@ python tools/llm_provider.py --list       # 看现在用的哪个服务、有没
 
 1. 安装 Python 3.12。选本机模型的话再装 [Ollama](https://ollama.com)。
 2. 安装依赖：`pip install -r requirements.txt`（用 Claude 的话再 `pip install anthropic`）。
-3. 首次运行：`python canaan.py bootstrap`，选大模型方式并下载需要的模型（支持断点续传，校验 SHA-256）。
+3. 首次运行：`python canaan.py bootstrap`。它会先问你给助手起什么名字，再问大模型用哪种方式，然后下载需要的模型（支持断点续传，校验 SHA-256）。
 4. 启动：`python canaan.py`（托盘版）。其他组件见 `python canaan.py --help`。
 
 没有装 GPT-SoVITS 时，语音合成自动用 Windows 自带的中文语音。安装包脚本仍需补齐 Tcl/Tk 运行时并在干净系统验收；当前请按上述源码安装步骤使用。
