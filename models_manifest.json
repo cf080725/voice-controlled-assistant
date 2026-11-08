@@ -65,7 +65,10 @@
  "ollama": [
   {"name": "陪聊模型 canaan-chat:3b（原版 Qwen2.5-3B-Instruct）", "tiers": ["8gb"], "variant": "base",
    "steps": [["ollama", "pull", "modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M"],
-             ["ollama", "create", "canaan-chat:3b", "-f", "resources/Modelfile_chat_3b"]]},
+             ["ollama", "create", "canaan-chat:3b", "-f", "resources/Modelfile_chat_3b"]],
+   "fallback_steps": [["ollama", "pull", "qwen2.5:3b"],
+                      ["ollama", "cp", "qwen2.5:3b", "modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M"],
+                      ["ollama", "create", "canaan-chat:3b", "-f", "resources/Modelfile_chat_3b"]]},
   {"name": "作者微调版 canaan-tuned:3b（Qwen2.5-3B-Instruct + 本项目指令识别微调，Qwen Research License）", "tiers": ["8gb"], "variant": "tuned",
    "download": {"path": "models/canaan-tuned-3b-q4_k_m.gguf", "size": 1929902432,
                 "sha256": "be1d942ec5fc0a6a9f771bddb27857018e6c136416382682e26e2b1a5cda2eca",
@@ -74,7 +77,9 @@
    "steps": [["ollama", "create", "canaan-tuned:3b", "-f", "resources/Modelfile_tuned_3b"]]},
   {"name": "后备意图/陪聊模型 qwen2.5:1.5b（6GB 档陪聊、意图模型出错时）", "tiers": ["8gb", "6gb"],
    "steps": [["ollama", "pull", "modelscope.cn/Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M"],
-             ["ollama", "cp", "modelscope.cn/Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M", "canaan-desk:1.5b"]]},
+             ["ollama", "cp", "modelscope.cn/Qwen/Qwen2.5-1.5B-Instruct-GGUF:Q4_K_M", "canaan-desk:1.5b"]],
+   "fallback_steps": [["ollama", "pull", "qwen2.5:1.5b"],
+                      ["ollama", "cp", "qwen2.5:1.5b", "canaan-desk:1.5b"]]},
   {"name": "意图模型 canaan-intent:1.5b（可选，需自行准备获准使用的 models/canaan-intent-q4_k_m.gguf；本机训练权重不随发行包提供）", "tiers": ["8gb", "6gb"],
    "requires_file": "models/canaan-intent-q4_k_m.gguf",
    "steps": [["ollama", "create", "canaan-intent:1.5b", "-f", "resources/Modelfile_intent"]]}

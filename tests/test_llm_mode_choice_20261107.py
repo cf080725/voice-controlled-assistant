@@ -202,6 +202,21 @@ def test_only_the_chosen_3b_is_downloaded(monkeypatch, tmp_path):
     assert [s[1] for s in ran] == ["pull", "cp"] and fetched == []            # 不下微调版
 
 
+def test_pull_falls_back_to_the_official_registry(monkeypatch):
+    manifest = {"ollama": [{"name": "base", "tiers": ["8gb"], "variant": "base",
+                            "steps": [["ollama", "pull", "modelscope.cn/q"], ["ollama", "create", "c"]],
+                            "fallback_steps": [["ollama", "pull", "qwen"], ["ollama", "cp", "qwen", "modelscope.cn/q"],
+                                               ["ollama", "create", "c"]]}]}
+    ran = []
+    monkeypatch.setattr(boot, "ollama_models", lambda: set())
+    monkeypatch.setattr(boot.subprocess, "run", lambda step, cwd=None: ran.append(step) or
+                        SimpleNamespace(returncode=1 if "modelscope.cn/q" in step and step[1] == "pull" else 0))
+    assert boot.ensure_ollama(manifest, "8gb", progress=lambda *_: None, variant="base") is True
+    assert [s[1] for s in ran] == ["pull", "pull", "cp", "create"]
+    monkeypatch.setattr(boot.subprocess, "run", lambda step, cwd=None: SimpleNamespace(returncode=1))
+    assert boot.ensure_ollama(manifest, "8gb", progress=lambda *_: None, variant="base") is False
+
+
 def test_failed_download_does_not_create_the_model(monkeypatch):
     manifest = {"ollama": [{"name": "tuned", "tiers": ["8gb"], "variant": "tuned",
                             "download": {"path": "models/t.gguf", "size": 3, "sha256": "x", "mirrors": ["u"]},

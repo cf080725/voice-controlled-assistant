@@ -223,12 +223,20 @@ def ensure_ollama(manifest, tier, check_only=False, progress=print, variant="bas
                     progress(f"[!] {item['name']} 下载失败（可稍后重新运行，会续传）")
                     ok_all = False
                     continue
-        for step in item["steps"]:
-            r = subprocess.run(step, cwd=BASE_DIR)
-            if r.returncode != 0:
-                progress(f"[!] 执行失败：{' '.join(step)}")
-                ok_all = False
+        plans = [item["steps"]] + ([item["fallback_steps"]] if item.get("fallback_steps") else [])
+        for n, steps in enumerate(plans):
+            if n:
+                progress("    换 Ollama 官方源再试（同一个 Qwen 量化版）")
+            failed = None
+            for step in steps:
+                if subprocess.run(step, cwd=BASE_DIR).returncode != 0:
+                    failed = step
+                    break
+            if failed is None:
                 break
+            progress(f"[!] 执行失败：{' '.join(failed)}")
+        else:
+            ok_all = False
     return ok_all
 
 

@@ -160,8 +160,8 @@ if (-not $SkipSetup) {
             $bootExit = $LASTEXITCODE
         }
     }
-    if ($bootExit -ne 0) { Warn "首次设置还有没完成的项目（见上），重新运行安装会续传" }
 }
+$incomplete = (-not $SkipSetup) -and ($bootExit -ne 0)
 
 # ---------------------------------------------------------------- 5. 快捷方式
 if (-not $NoShortcut) {
@@ -179,5 +179,9 @@ if (-not $NoShortcut) {
     Ok $lnk
 }
 
+if ($incomplete) {
+    Write-Host "`n[还没装完] 有模型没下载 / 没装好（见上面带 [!] 的行），多半是网络问题。重新运行同一条安装命令即可，已完成的会跳过、下载会续传。" -ForegroundColor Red
+    exit 1
+}
 Write-Host "`n安装完成。双击桌面上的快捷方式，或者仓库里的 启动.bat 启动；右下角托盘出现图标就是在运行了。" -ForegroundColor Green
 Write-Host "以后想改名字或换大模型方式：.venv\Scripts\python.exe canaan.py bootstrap --name 新名字 / --llm api"
