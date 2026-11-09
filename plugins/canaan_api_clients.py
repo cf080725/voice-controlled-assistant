@@ -82,7 +82,7 @@ class Principal:
     def __init__(self, client_id, name, caps, resources=None, owner=False):
         self.id, self.name, self.owner = client_id, name, owner
         self.caps = frozenset(CAPS) if owner else frozenset(caps) & EXTERNAL_CAPS
-        self.resources = deepcopy(resources) if resources else {}
+        self.resources = resources or {}
 
     def can(self, cap):
         return cap in self.caps
@@ -171,7 +171,8 @@ class ClientRegistry:
         digest = _hash(token)
         for client in self._load():
             if hmac.compare_digest(client.get("token_sha256", ""), digest) and not client.get("revoked_at"):
-                return Principal(client["id"], client.get("name", ""), client.get("caps", []), client.get("resources"))
+                return Principal(client["id"], client.get("name", ""), client.get("caps", []),
+                                 deepcopy(client.get("resources")))
         return None
 
     def pair(self, name, caps=None, resources=None):
