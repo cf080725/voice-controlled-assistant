@@ -15,7 +15,10 @@ import secrets
 import threading
 import time
 import uuid
+from copy import deepcopy
 from pathlib import Path
+
+from canaan_filelock import file_lock
 
 CAPS = ("status", "read", "propose", "ingest", "progress", "confirm", "train", "admin")
 EXTERNAL_CAPS = frozenset({"status", "read", "propose", "ingest", "progress"})
@@ -79,7 +82,7 @@ class Principal:
     def __init__(self, client_id, name, caps, resources=None, owner=False):
         self.id, self.name, self.owner = client_id, name, owner
         self.caps = frozenset(CAPS) if owner else frozenset(caps) & EXTERNAL_CAPS
-        self.resources = resources or {}
+        self.resources = deepcopy(resources) if resources else {}
 
     def can(self, cap):
         return cap in self.caps
@@ -135,20 +138,21 @@ class ClientRegistry:
         self.path = Path(directory) / "api_clients.json"
         self.owner_token = owner_token
         self.lock = threading.RLock()
-        self._mtime = None
+        self._stamp = None
         self._clients = []
 
-    def _load(self):
+    def _load(self, *, fresh=False):
         with self.lock:
             try:
-                mtime = self.path.stat().st_mtime_ns
+                stat = self.path.stat()
             except FileNotFoundError:
-                self._clients, self._mtime = [], None
+                self._clients, self._stamp = [], None
                 return self._clients
-            if mtime != self._mtime:
+            stamp = (stat.st_dev, stat.st_ino, stat.st_mtime_ns, stat.st_size)
+            if fresh or stamp != self._stamp:
                 data = json.loads(self.path.read_text(encoding="utf-8"))
                 self._clients = data.get("clients", []) if isinstance(data, dict) else []
-                self._mtime = mtime
+                self._stamp = stamp
             return self._clients
 
     def _save(self, clients):
@@ -157,8 +161,7 @@ class ClientRegistry:
             temp = self.path.with_suffix(".tmp")
             temp.write_text(json.dumps({"version": 1, "clients": clients}, ensure_ascii=False, indent=1), encoding="utf-8")
             temp.replace(self.path)
-            self._mtime = None
-            self._load()
+            self._stamp = None
 
     def authenticate(self, token):
         if not isinstance(token, str) or not token:
@@ -189,13 +192,13 @@ class ClientRegistry:
         record = {"id": uuid.uuid4().hex[:12], "name": name.strip(), "token_sha256": _hash(token),
                   "caps": sorted(set(caps), key=CAPS.index), "resources": resources,
                   "created_at": time.time(), "revoked_at": None}
-        with self.lock:
-            self._save(self._load() + [record])
+        with self.lock, file_lock(self.path):
+            self._save(self._load(fresh=True) + [record])
         return self.public(record), token
 
     def revoke(self, client_id):
-        with self.lock:
-            clients = [dict(c) for c in self._load()]
+        with self.lock, file_lock(self.path):
+            clients = [dict(c) for c in self._load(fresh=True)]
             hit = next((c for c in clients if c["id"] == client_id), None)
             if hit is None:
                 raise KeyError("客户端不存在")
@@ -209,7 +212,7 @@ class ClientRegistry:
 
     @staticmethod
     def public(record):
-        return {k: v for k, v in record.items() if k != "token_sha256"}
+        return deepcopy({k: v for k, v in record.items() if k != "token_sha256"})
 
     def migrate_legacy(self, token_file):
         """旧版所有客户端共用 data/integration_token.txt 的全权限令牌。
@@ -222,8 +225,8 @@ class ClientRegistry:
         if len(token) < 24:
             return None
         digest = _hash(token)
-        with self.lock:
-            clients = self._load()
+        with self.lock, file_lock(self.path):
+            clients = self._load(fresh=True)
             if any(c.get("token_sha256") == digest for c in clients):
                 return None
             record = {"id": "legacy-shared", "name": LEGACY_NAME, "token_sha256": digest, "caps": ["status"],

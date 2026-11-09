@@ -4,13 +4,35 @@ import json
 import re
 import threading
 import urllib.request
+import zipfile
+from itertools import chain
 from urllib.parse import urlsplit
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 KNOWLEDGE_PATH = ROOT / "data" / "knowledge.db"
+MAX_DOCUMENT_CHARACTERS = 2_000_000
+MAX_DOCX_ENTRIES = 2_000
+MAX_DOCX_UNCOMPRESSED_BYTES = 100 * 1024 * 1024
+MAX_OLLAMA_RESPONSE_BYTES = 1024 * 1024
 _instance = None
 _instance_lock = threading.Lock()
+
+
+def _join_document_text(parts):
+    lines = []
+    length = 0
+    for part in parts:
+        length += len(part) + bool(lines)
+        if length > MAX_DOCUMENT_CHARACTERS:
+            raise ValueError("资料超过 200 万字符")
+        lines.append(part)
+    return "\n".join(lines)
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
 
 
 def read_document(path):
@@ -21,16 +43,30 @@ def read_document(path):
         text = p.read_text(encoding="utf-8-sig")
     elif p.suffix.lower() == ".pdf":
         from pypdf import PdfReader
-        text = "\n".join(page.extract_text() or "" for page in PdfReader(str(p)).pages)
+        with p.open("rb") as stream:
+            text = _join_document_text(page.extract_text() or "" for page in PdfReader(stream).pages)
     elif p.suffix.lower() == ".docx":
         from docx import Document
-        document = Document(str(p))
-        paragraphs = [para.text for para in document.paragraphs]
-        paragraphs.extend("\t".join(cell.text for cell in row.cells) for table in document.tables for row in table.rows)
-        text = "\n".join(paragraphs)
+        with p.open("rb") as stream:
+            try:
+                with zipfile.ZipFile(stream) as archive:
+                    entries = archive.infolist()
+                    if (len(entries) > MAX_DOCX_ENTRIES
+                            or sum(entry.file_size for entry in entries) > MAX_DOCX_UNCOMPRESSED_BYTES):
+                        raise ValueError("DOCX 解压后的文件数量或大小超过限制")
+                    if any(entry.flag_bits & 1 for entry in entries):
+                        raise ValueError("不支持加密的 DOCX 文件")
+            except zipfile.BadZipFile as exc:
+                raise ValueError("DOCX 文件格式无效") from exc
+            stream.seek(0)
+            document = Document(stream)
+            paragraphs = (para.text for para in document.paragraphs)
+            rows = ("\t".join(cell.text for cell in row.cells)
+                    for table in document.tables for row in table.rows)
+            text = _join_document_text(chain(paragraphs, rows))
     else:
         raise ValueError("支持 UTF-8 txt/md/csv、文本 PDF 和 docx；扫描 PDF 需先 OCR")
-    if not text.strip() or len(text) > 2_000_000:
+    if len(text) > MAX_DOCUMENT_CHARACTERS or not text.strip():
         raise ValueError("资料无可提取文字，或超过 200 万字符")
     return p, text
 
@@ -67,34 +103,27 @@ class KnowledgeBase:
     def _delete_episodes(self, ids):
         for eid in ids:
             self.store.db.execute("DELETE FROM episodes WHERE id=?", (eid,))
-            self.store.db.execute("DELETE FROM episodes_fts WHERE rowid=?", (eid,))
-            if self.store.vec:
-                self.store.db.execute("DELETE FROM episodes_vec WHERE rowid=?", (eid,))
+            self.store._drop_indexes("episodes", eid)
 
     def import_file(self, path):
         p, text = read_document(path)
         source = str(p)
         digest = hashlib.sha256(text.encode()).hexdigest()
-        with self.store._lock:
+        with self.store._transaction():
             old = self.store.db.execute("SELECT digest,chunks FROM documents WHERE source=?", (source,)).fetchone()
             if old and old["digest"] == digest:
                 return {"source": source, "chunks": old["chunks"], "changed": False}
             added = []
-            try:
-                for start, end, part in chunks(text):
-                    eid = self.store.add_episode(part)
-                    added.append((eid, source, start, end))
-                old_ids = [r[0] for r in self.store.db.execute("SELECT episode_id FROM document_chunks WHERE source=?", (source,))]
-                self._delete_episodes(old_ids)
-                self.store.db.execute("DELETE FROM document_chunks WHERE source=?", (source,))
-                self.store.db.executemany("INSERT INTO document_chunks VALUES(?,?,?,?)", added)
-                self.store.db.execute("INSERT OR REPLACE INTO documents VALUES(?,?,?)", (source, digest, len(added)))
-                self.store.db.commit()
-            except Exception:
-                self.store.db.rollback()
-                self._delete_episodes([r[0] for r in added])
-                self.store.db.commit()
-                raise
+            for start, end, part in chunks(text):
+                eid = self.store.add_episode(part)
+                if eid is None:
+                    raise RuntimeError("无法保存资料片段")
+                added.append((eid, source, start, end))
+            old_ids = [r[0] for r in self.store.db.execute("SELECT episode_id FROM document_chunks WHERE source=?", (source,))]
+            self._delete_episodes(old_ids)
+            self.store.db.execute("DELETE FROM document_chunks WHERE source=?", (source,))
+            self.store.db.executemany("INSERT INTO document_chunks VALUES(?,?,?,?)", added)
+            self.store.db.execute("INSERT OR REPLACE INTO documents VALUES(?,?,?)", (source, digest, len(added)))
         return {"source": source, "chunks": len(added), "changed": True}
 
     def search(self, question, limit=5, allowed=None):
@@ -125,7 +154,8 @@ class KnowledgeBase:
         if not hits:
             return {"answer": "知识库里没有找到相关资料，请先导入或补充文档。", "sources": []}
         import canaan_config as cfg
-        endpoint = urlsplit(cfg.OLLAMA_API_URL)
+        ollama_url = cfg.OLLAMA_API_URL
+        endpoint = urlsplit(ollama_url)
         if endpoint.scheme not in ("http", "https") or endpoint.hostname not in ("localhost", "127.0.0.1", "::1"):
             raise ValueError("知识库回答只连接本机 Ollama，不向通用聊天远端发送资料")
         payload = {"model": cfg.MESSAGE_SUMMARY_MODEL, "stream": False,
@@ -139,15 +169,20 @@ class KnowledgeBase:
             payload["keep_alive"] = keep_alive  # 7B 用完立刻让出显存，不把对话模型挤出去
         else:
             payload["keep_alive"] = gpu.shared_keep_alive()   # 用的是对话模型：别把它的常驻时间改回默认 5 分钟
-        req = urllib.request.Request(cfg.OLLAMA_API_URL, data=json.dumps(payload).encode(),
+        req = urllib.request.Request(ollama_url, data=json.dumps(payload).encode(),
                                      headers={"Content-Type": "application/json"})
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
         try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                result = json.loads(resp.read())
+            with opener.open(req, timeout=60) as resp:
+                body = resp.read(MAX_OLLAMA_RESPONSE_BYTES + 1)
+                if len(body) > MAX_OLLAMA_RESPONSE_BYTES:
+                    raise RuntimeError("本地模型响应超过大小限制")
+                result = json.loads(body)
         finally:
             if keep_alive is not None:
                 gpu.background_done(cfg.MESSAGE_SUMMARY_MODEL)
-        answer = (result.get("message") or {}).get("content")
+        message = result.get("message") if isinstance(result, dict) else None
+        answer = message.get("content") if isinstance(message, dict) else None
         if not isinstance(answer, str) or not re.sub(r"\[\d+\]|\s", "", answer):
             raise RuntimeError("本地模型没有返回有效回答")
         if any(not 1 <= int(ref) <= len(hits) for ref in re.findall(r"\[(\d+)\]", answer)):
