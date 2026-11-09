@@ -11,6 +11,7 @@
 import json
 import os
 import re
+from pathlib import Path
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -75,16 +76,18 @@ def rename(name, *, old_name, persona_text, kws_dir, data_dir=DATA_DIR):
     name = check_name(name)
     lines = keyword_lines(name, load_vocab(kws_dir))
     os.makedirs(data_dir, exist_ok=True)
-    rel = os.path.relpath(data_dir, BASE_DIR).replace("\\", "/")
+    directory = Path(data_dir).resolve()
+    base = Path(BASE_DIR).resolve()
+    profile_dir = directory.relative_to(base) if directory.is_relative_to(base) else directory
     with open(os.path.join(data_dir, KEYWORDS), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     persona = (persona_text or "").replace(old_name, name) if old_name else (persona_text or "")
     profile = {"assistant_name": name, "wake_phrases": list(wake_phrases(name)),
-               "wake_asr_aliases": [name, name + name], "kws_keywords_file": f"{rel}/{KEYWORDS}"}
+               "wake_asr_aliases": [name, name + name], "kws_keywords_file": (profile_dir / KEYWORDS).as_posix()}
     if persona.strip():
         with open(os.path.join(data_dir, PERSONA), "w", encoding="utf-8") as f:
             f.write(persona)
-        profile["persona_prompt_file"] = f"{rel}/{PERSONA}"
+        profile["persona_prompt_file"] = (profile_dir / PERSONA).as_posix()
     tmp = os.path.join(data_dir, PROFILE + ".tmp")
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(profile, f, ensure_ascii=False, indent=1)

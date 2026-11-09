@@ -2,6 +2,7 @@
 import importlib
 import json
 import os
+from pathlib import Path
 
 import pytest
 
@@ -40,6 +41,8 @@ def test_real_kws_vocab_accepts_the_default_names():
 
 
 def test_rename_writes_profile_keywords_and_persona(tmp_path):
+    from canaan_companion import load_persona_prompt
+
     persona = "你是团团，一个桌面助手。团团说话简短。"
     profile = an.rename("佳南", old_name="团团", persona_text=persona, kws_dir=str(tmp_path / "none"),
                         data_dir=str(tmp_path / "data"))
@@ -49,6 +52,10 @@ def test_rename_writes_profile_keywords_and_persona(tmp_path):
     assert (tmp_path / "data" / an.PERSONA).read_text(encoding="utf-8") == "你是佳南，一个桌面助手。佳南说话简短。"
     saved = json.loads((tmp_path / "data" / an.PROFILE).read_text(encoding="utf-8"))
     assert saved == profile and not os.path.exists(tmp_path / "data" / (an.PROFILE + ".tmp"))
+    target = {}
+    assert canaan_config._apply_edition(str(tmp_path / "data" / an.PROFILE), target)
+    assert Path(target["KWS_KEYWORDS_FILE"]) == tmp_path / "data" / an.KEYWORDS
+    assert load_persona_prompt(target["PERSONA_PROMPT_FILE"]) == "你是佳南，一个桌面助手。佳南说话简短。"
 
 
 def test_config_applies_the_local_profile(tmp_path, monkeypatch):
