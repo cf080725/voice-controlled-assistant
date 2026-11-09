@@ -128,6 +128,8 @@ AutoClaw / OpenClaw / 其他工具可以按其支持方式使用 HTTP 或 stdio 
 | POST `/api/training/export` | `{kind:"voice",consent:true}` 导出已逐条授权的人工纠错样本，附分组/哈希；默认 kind 仍为 priority |
 | POST `/api/connections` | 可追加 `feishu:{enabled,python,lark_config?}` 与 `voice:{audio_roots:[]}`；应用 secret 不通过此接口保存 |
 
+语音导出的 `manifest.json` 中，`format_version` 为 `2` 时，JSONL 里的 `audio` 路径相对于整份导出目录。`files` 提供清单自身之外每个发布文件的 SHA-256。撤销某条训练授权会从后续导出排除该样本。以前导出的副本需要单独清理。
+
 旧 POST `/api/messages` 也接受上述带 audio_path 的事件；仅有占位信息时提交 `audio_missing:true`，任务显示“未取得音频”，不生成伪转写。消息状态新增 `health`、`quarantine`、`notifications`、`desktop_available`。消息设置新增 `notify_p0`；独立 API 没有桌面显示回调时只保存消息。
 
 只读 MCP 工具追加 `voice_status`、`voice_results`，不提供训练授权、人工真值写入或直接执行。资源与缓存策略见 语音与稳定性说明。

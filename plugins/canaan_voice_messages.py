@@ -2,7 +2,9 @@
 import hashlib
 import json
 import os
+import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -10,12 +12,21 @@ import time
 import uuid
 from pathlib import Path
 
+from canaan_filelock import file_lock
 from canaan_message_center import normalize_message
 from canaan_message_priority import SOURCES, PRIORITIES
 
 MAX_BYTES = 20 * 1024 * 1024
 MAX_SECONDS = 600
 RETENTION = 1800
+
+
+def _audio_checksum(path):
+    with path.open("rb") as stream:
+        content = stream.read(MAX_BYTES + 1)
+    if len(content) > MAX_BYTES:
+        raise ValueError("音频超过20 MiB")
+    return hashlib.sha256(content).hexdigest()
 
 
 def decode_audio(path):
@@ -144,6 +155,8 @@ class VoiceMessages:
         self.center, self.db, self.lock = center, center.db, center.lock
         self.directory = center.directory
         self.cache = self.directory / "audio" / "cache"
+        self.samples = self.directory / "training" / "voice_samples"
+        self.consent_lock = self.samples.parent / ".voice-consent"
         self.transcriber, self.decoder = transcriber, decoder
         self.stop_event = threading.Event()
         self._whisper = None
@@ -155,6 +168,7 @@ class VoiceMessages:
               corrected_text TEXT DEFAULT '', engine TEXT DEFAULT '', seconds REAL DEFAULT 0, latency_ms REAL DEFAULT 0,
               error TEXT DEFAULT '', consent INTEGER DEFAULT 0, label TEXT DEFAULT '{}', reason TEXT DEFAULT '',
               created_at REAL, updated_at REAL, expires_at REAL, UNIQUE(source,message_id));
+            CREATE TABLE IF NOT EXISTS voice_audio_cleanup(audio_path TEXT PRIMARY KEY);
             """)
             self.db.execute("UPDATE voice_jobs SET state='queued' WHERE state='running'")
 
@@ -191,26 +205,37 @@ class VoiceMessages:
                 cached, checksum = self._copy_audio(path, job_id)
                 error = ""
             now = time.time()
-            with self.db:
-                if recover:
-                    self.db.execute("UPDATE voice_jobs SET audio_path=?,audio_hash=?,state='queued',error='',updated_at=?,expires_at=? WHERE id=?",
-                                    (cached, checksum, now, now + RETENTION, job_id))
-                    return {"accepted": True, "id": job_id, "reason": "voice_audio_recovered"}
-                self.db.execute("""INSERT INTO voice_jobs(id,source,message_id,conversation,sender,timestamp,purpose,session_id,
-                  audio_path,audio_hash,state,error,created_at,updated_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                  (job_id, meta["source"], meta["message_id"], meta["conversation"], meta["sender"], meta["timestamp"],
-                   "message", str(raw.get("session_id") or meta["conversation"])[:200], cached, checksum,
-                   "queued" if cached else "failed", error, now, now, now + RETENTION))
-            return {"accepted": True, "id": job_id, "reason": "voice_job"}
+            try:
+                with self.db:
+                    if recover:
+                        self.db.execute("UPDATE voice_jobs SET audio_path=?,audio_hash=?,state='queued',error='',updated_at=?,expires_at=? WHERE id=?",
+                                        (cached, checksum, now, now + RETENTION, job_id))
+                    else:
+                        self.db.execute("""INSERT INTO voice_jobs(id,source,message_id,conversation,sender,timestamp,purpose,session_id,
+                          audio_path,audio_hash,state,error,created_at,updated_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                          (job_id, meta["source"], meta["message_id"], meta["conversation"], meta["sender"], meta["timestamp"],
+                           "message", str(raw.get("session_id") or meta["conversation"])[:200], cached, checksum,
+                           "queued" if cached else "failed", error, now, now, now + RETENTION))
+            except Exception:
+                if cached:
+                    Path(cached).unlink(missing_ok=True)
+                raise
+            return {"accepted": True, "id": job_id, "reason": "voice_audio_recovered" if recover else "voice_job"}
 
     def _copy_audio(self, path, job_id):
-        if path.stat().st_size > MAX_BYTES:
-            raise ValueError("音频超过20 MiB")
         self.cache.mkdir(parents=True, exist_ok=True)
         target = self.cache / (job_id + path.suffix[:12])
+        return str(target), self._copy_audio_file(path, target)
+
+    @staticmethod
+    def _copy_audio_file(path, target, expected=None):
+        if path.stat().st_size > MAX_BYTES:
+            raise ValueError("音频超过20 MiB")
         digest, size = hashlib.sha256(), 0
+        created = False
         try:
             with path.open("rb") as src, target.open("xb") as dst:
+                created = True
                 while chunk := src.read(65536):
                     size += len(chunk)
                     if size > MAX_BYTES:
@@ -221,10 +246,50 @@ class VoiceMessages:
                 os.fsync(dst.fileno())
             if not size:
                 raise ValueError("音频为空")
+            checksum = digest.hexdigest()
+            if expected and expected != checksum:
+                raise ValueError("音频内容已变化，请重新提供录音")
         except Exception:
-            target.unlink(missing_ok=True)
+            if created:
+                target.unlink(missing_ok=True)
             raise
-        return str(target), digest.hexdigest()
+        return checksum
+
+    def _owned_audio(self, raw, *, approved=False):
+        if not raw:
+            return None
+        path = Path(raw)
+        try:
+            if not path.is_absolute() or path.is_symlink():
+                return None
+            resolved = path.resolve()
+            if resolved.is_relative_to(self.cache.resolve()) or (approved and resolved.is_relative_to(self.samples.resolve())):
+                return resolved
+        except (OSError, RuntimeError):
+            return None
+        return None
+
+    def _audio_references(self):
+        return {self._owned_audio(raw, approved=True) for (raw,) in self.db.execute("SELECT audio_path FROM voice_jobs WHERE audio_path<>''")}
+
+    def _queue_audio_cleanup(self, raw):
+        if self._owned_audio(raw, approved=True):
+            self.db.execute("INSERT OR IGNORE INTO voice_audio_cleanup VALUES(?)", (raw,))
+
+    def _delete_detached_audio(self):
+        with self.db:
+            pending = self.db.execute("SELECT audio_path FROM voice_audio_cleanup").fetchall()
+            if not pending:
+                return
+            referenced = self._audio_references()
+            for (raw,) in pending:
+                path = self._owned_audio(raw, approved=True)
+                if path is not None and path not in referenced:
+                    try:
+                        path.unlink(missing_ok=True)
+                    except OSError:
+                        continue  # Retry once a player has released the file.
+                self.db.execute("DELETE FROM voice_audio_cleanup WHERE audio_path=?", (raw,))
 
     def record_command(self, audio, text, engine):
         """Keep a short correction cache; this records no human-approved training label."""
@@ -236,16 +301,28 @@ class VoiceMessages:
         data = to_mono_f32(audio)
         if not 0 < len(data) <= SAMPLE_RATE * MAX_SECONDS:
             raise ValueError("录音长度无效")
-        sf.write(target, data, SAMPLE_RATE, subtype="PCM_16")
-        with self.lock, self.db:
-            self.db.execute("""INSERT INTO voice_jobs(id,source,message_id,conversation,sender,timestamp,purpose,session_id,
-              audio_path,audio_hash,state,original_text,engine,seconds,created_at,updated_at,expires_at)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-              (job_id, "microphone", job_id, "本人语音指令", "本人", now, "command", time.strftime("%Y%m%d"),
-               str(target), hashlib.sha256(target.read_bytes()).hexdigest(), "succeeded" if text.strip() else "failed", text[:16000], engine,
-               len(data) / SAMPLE_RATE, now, now, now + RETENTION))
-            if not text.strip():
-                self.db.execute("UPDATE voice_jobs SET error='未识别到文字，请核对录音' WHERE id=?", (job_id,))
+        with self.lock:
+            created = False
+            try:
+                with target.open("xb") as stream:
+                    created = True
+                    sf.write(stream, data, SAMPLE_RATE, format="WAV", subtype="PCM_16")
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                checksum = _audio_checksum(target)
+                with self.db:
+                    self.db.execute("""INSERT INTO voice_jobs(id,source,message_id,conversation,sender,timestamp,purpose,session_id,
+                      audio_path,audio_hash,state,original_text,engine,seconds,created_at,updated_at,expires_at)
+                      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                      (job_id, "microphone", job_id, "本人语音指令", "本人", now, "command", time.strftime("%Y%m%d"),
+                       str(target), checksum, "succeeded" if text.strip() else "failed", text[:16000], engine,
+                       len(data) / SAMPLE_RATE, now, now, now + RETENTION))
+                    if not text.strip():
+                        self.db.execute("UPDATE voice_jobs SET error='未识别到文字，请核对录音' WHERE id=?", (job_id,))
+            except Exception:
+                if created:
+                    target.unlink(missing_ok=True)
+                raise
         return self.get(job_id)
 
     def get(self, job_id):
@@ -255,7 +332,8 @@ class VoiceMessages:
                 raise KeyError("语音任务不存在")
             result = dict(row)
         result["label"] = json.loads(result["label"])
-        result["audio_available"] = bool(result["audio_path"] and Path(result["audio_path"]).is_file())
+        audio = self._owned_audio(result["audio_path"], approved=result["consent"])
+        result["audio_available"] = bool(audio and audio.is_file())
         result["training_authorized"] = bool(result.pop("consent"))
         result.pop("audio_path")
         return result
@@ -281,7 +359,8 @@ class VoiceMessages:
             row = self.db.execute("SELECT audio_path,expires_at,consent,state,purpose FROM voice_jobs WHERE id=?", (job_id,)).fetchone()
             if row is None:
                 raise KeyError("语音任务不存在")
-            if row["purpose"] != "message" or row["state"] != "failed" or not row["audio_path"] or not Path(row["audio_path"]).is_file() or (not row["consent"] and row["expires_at"] < time.time()):
+            path = self._owned_audio(row["audio_path"], approved=row["consent"])
+            if row["purpose"] != "message" or row["state"] != "failed" or path is None or not path.is_file() or (not row["consent"] and row["expires_at"] < time.time()):
                 raise ValueError("仅可重试仍有缓存音频的失败任务")
             self.db.execute("UPDATE voice_jobs SET state='queued',error='' WHERE id=?", (job_id,))
         return self.get(job_id)
@@ -302,10 +381,11 @@ class VoiceMessages:
         started = time.monotonic()
         try:
             import numpy as np
-            path = Path(row["audio_path"]).resolve()
-            owned = path.is_relative_to(self.cache.resolve()) or (row["consent"] and path.is_relative_to((self.directory / "training" / "voice_samples").resolve()))
-            if not owned or path.stat().st_size > MAX_BYTES:
+            path = self._owned_audio(row["audio_path"], approved=row["consent"])
+            if path is None or path.stat().st_size > MAX_BYTES:
                 raise ValueError("缓存音频路径或大小无效")
+            if row["audio_hash"] and _audio_checksum(path) != row["audio_hash"]:
+                raise ValueError("音频内容已变化，请重新提供录音")
             audio = self.decoder(path)
             if not 0 < len(audio) <= 16000 * MAX_SECONDS or not np.isfinite(audio).all() or np.max(np.abs(audio)) < 1e-5:
                 raise ValueError("音频无有效语音或长度无效")
@@ -351,7 +431,7 @@ class VoiceMessages:
                 raise ValueError("意图标签或参数无效")
         if "todos" in label and (not isinstance(label["todos"], list) or len(label["todos"]) > 20 or any(not isinstance(t, str) or len(t) > 500 for t in label["todos"])):
             raise ValueError("待办标签须为最多20条短文本")
-        with self.lock:
+        with self.lock, file_lock(self.consent_lock):
             row = self.db.execute("SELECT * FROM voice_jobs WHERE id=?", (job_id,)).fetchone()
             if row is None:
                 raise KeyError("语音任务不存在")
@@ -359,33 +439,28 @@ class VoiceMessages:
                 raise ValueError("请等待本次转写结束后修订")
             if row["purpose"] == "message" and label.get("a", "chat") != "chat":
                 raise ValueError("聊天语音只能标为资料或闲聊，不能标成执行授权")
-            audio = row["audio_path"]
+            old_audio = audio = row["audio_path"]
             copied = None
             if audio and not row["consent"] and row["expires_at"] < time.time():
-                if Path(audio).is_relative_to(self.cache.resolve()):
-                    Path(audio).unlink(missing_ok=True)
                 audio = ""
             if consent and audio:
-                if not Path(audio).is_file() or (not row["consent"] and row["expires_at"] < time.time()):
+                path = self._owned_audio(audio, approved=row["consent"])
+                if path is None or not path.is_file():
                     raise ValueError("音频缓存已过期，不能授权声学训练；请重新提供录音")
-                folder = self.directory / "training" / "voice_samples"
-                folder.mkdir(parents=True, exist_ok=True)
-                target = folder / (job_id + Path(audio).suffix)
-                if Path(audio) != target:
+                self.samples.mkdir(parents=True, exist_ok=True)
+                target = self.samples / (job_id + path.suffix)
+                if path != self._owned_audio(target, approved=True):
+                    self._copy_audio_file(path, target, expected=row["audio_hash"])
                     copied = target
-                    try:
-                        shutil.copyfile(audio, target)
-                    except Exception:
-                        target.unlink(missing_ok=True)
-                        raise
                 audio = str(target)
             elif row["consent"] and audio:
-                Path(audio).unlink(missing_ok=True)
                 audio = ""
             try:
                 with self.db:
                     self.db.execute("UPDATE voice_jobs SET corrected_text=?,reason=?,consent=?,label=?,audio_path=?,updated_at=? WHERE id=?",
                                     (text.strip(), reason.strip(), int(consent), json.dumps(label, ensure_ascii=False), audio, time.time(), job_id))
+                    if audio != old_audio:
+                        self._queue_audio_cleanup(old_audio)
                     if row["purpose"] == "message":
                         message = self.db.execute("SELECT id FROM messages WHERE source=? AND message_id=?", (row["source"], row["message_id"])).fetchone()
                         if not message:
@@ -401,25 +476,29 @@ class VoiceMessages:
                 if copied:
                     copied.unlink(missing_ok=True)
                 raise
-            if copied:
-                Path(row["audio_path"]).unlink(missing_ok=True)
+            try:
+                self._delete_detached_audio()
+            except sqlite3.Error:
+                pass  # The committed cleanup queue is retried by the worker.
             return self.get(job_id)
 
     def cleanup(self, now=None):
         now = time.time() if now is None else now
-        with self.lock, self.db:
-            rows = self.db.execute("SELECT id,audio_path FROM voice_jobs WHERE consent=0 AND expires_at<? AND state<>'running' AND audio_path<>''", (now,)).fetchall()
-            for row in rows:
-                path = Path(row["audio_path"])
-                if path.is_relative_to(self.cache.resolve()):
-                    path.unlink(missing_ok=True)
-                self.db.execute("UPDATE voice_jobs SET audio_path='',state=CASE WHEN state='queued' THEN 'failed' ELSE state END,error=CASE WHEN state='queued' THEN '音频缓存已过期' ELSE error END WHERE id=?", (row["id"],))
-            referenced = {Path(r[0]).resolve() for r in self.db.execute("SELECT audio_path FROM voice_jobs WHERE audio_path<>''")}
-        for folder in (self.cache, self.directory / "audio" / "incoming"):
-            if folder.is_dir():
-                for path in folder.iterdir():
-                    if path.is_file() and not path.is_symlink() and path.resolve() not in referenced and path.stat().st_mtime < now - RETENTION:
-                        path.unlink()
+        with self.lock:
+            with self.db:
+                rows = self.db.execute("SELECT id,audio_path FROM voice_jobs WHERE consent=0 AND expires_at<? AND state<>'running' AND audio_path<>''", (now,)).fetchall()
+                for row in rows:
+                    self._queue_audio_cleanup(row["audio_path"])
+                    self.db.execute("UPDATE voice_jobs SET audio_path='',state=CASE WHEN state='queued' THEN 'failed' ELSE state END,error=CASE WHEN state='queued' THEN '音频缓存已过期' ELSE error END WHERE id=?", (row["id"],))
+                # Clean up interrupted, application-generated copies, never incoming files.
+                referenced = self._audio_references()
+                if self.cache.is_dir():
+                    for path in self.cache.iterdir():
+                        owned = self._owned_audio(path)
+                        if (owned and owned not in referenced and re.fullmatch(r"[0-9a-f]{32}(?:\..{1,11})?", path.name)
+                                and path.is_file() and path.stat().st_mtime < now - RETENTION):
+                            self._queue_audio_cleanup(str(path))
+            self._delete_detached_audio()
         from canaan_message_connectors import cleanup_export_working
         cleanup_export_working(self.directory, now)
 
