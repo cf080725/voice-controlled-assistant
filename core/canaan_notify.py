@@ -10,6 +10,7 @@
 """
 import json
 import os
+import tempfile
 import threading
 import time
 
@@ -23,6 +24,7 @@ DEDUP_SECONDS = 600.0
 PER_KIND_PER_MINUTE = 3
 MAX_AGE = 120.0          # 托盘读到时已经过了这么久的通知不再弹（托盘没开时积下的）
 MAX_QUEUE_BYTES = 256 * 1024
+MAX_ENTRY_BYTES = 4096
 
 
 def _mask(text):
@@ -97,22 +99,44 @@ class Notifier:
                 if len(recent) >= PER_KIND_PER_MINUTE:
                     self.sent[kind] = recent
                     return False
-                self.seen[key] = now
-                self.sent[kind] = recent + [now]
                 # 默认不写标题/正文原文；正则脱敏不能消除语义上的隐私。
                 preview = show_preview(self.settings_path)
                 masked = _mask(body) if preview else None
                 masked_title = _mask(str(title)) if preview else None
                 entry = {"kind": kind, "title": (masked_title or PRIVATE_TITLES[kind])[:40],
                          "body": "" if masked is None else masked[:120], "ts": now}
-                os.makedirs(os.path.dirname(self.path), exist_ok=True)
-                if os.path.exists(self.path) and os.path.getsize(self.path) > MAX_QUEUE_BYTES:
-                    open(self.path, "w", encoding="utf-8").close()   # 读方发现文件变小会从头读
-                with open(self.path, "a", encoding="utf-8") as f:
-                    f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                self._append((json.dumps(entry, ensure_ascii=False) + "\n").encode("utf-8"))
+                self.seen[key] = now
+                self.sent[kind] = recent + [now]
             return True
         except Exception:
             return False
+
+    def _append(self, entry):
+        directory = os.path.dirname(self.path) or "."
+        os.makedirs(directory, exist_ok=True)
+        size = os.path.getsize(self.path) if os.path.exists(self.path) else 0
+        if size + len(entry) < MAX_QUEUE_BYTES:
+            with open(self.path, "a+b") as stream:
+                if size:
+                    stream.seek(-1, os.SEEK_END)
+                    if stream.read(1) != b"\n":
+                        stream.write(b"\n")
+                stream.write(entry)
+            return
+        # 发布一个新文件，让读方即使看到相同长度也能识别轮转。
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=directory, delete=False) as stream:
+                temporary = stream.name
+                stream.write(entry)
+            os.replace(temporary, self.path)
+        finally:
+            if temporary is not None:
+                try:
+                    os.unlink(temporary)
+                except FileNotFoundError:
+                    pass
 
 
 class NotifyReader:
@@ -120,38 +144,62 @@ class NotifyReader:
 
     def __init__(self, path=QUEUE_PATH, clock=time.time):
         self.path, self.clock = path, clock
+        self.offset, self.file_key, self.discarding = 0, None, False
         try:
-            self.offset = os.path.getsize(path)
+            stat = os.stat(path)
+            self.offset = stat.st_size
+            self.file_key = (stat.st_dev, stat.st_ino)
         except OSError:
-            self.offset = 0
+            pass
 
     def read_new(self):
         try:
-            size = os.path.getsize(self.path)
+            with open(self.path, "rb") as stream:
+                stat = os.fstat(stream.fileno())
+                file_key = (stat.st_dev, stat.st_ino)
+                if file_key != self.file_key or stat.st_size < self.offset:
+                    self.offset, self.file_key, self.discarding = 0, file_key, False
+                stream.seek(self.offset)
+                data = stream.read(MAX_QUEUE_BYTES)
         except OSError:
             return []
-        if size < self.offset:
-            self.offset = 0
-        if size == self.offset:
+        end = data.rfind(b"\n") + 1
+        if not end:
+            if len(data) == MAX_QUEUE_BYTES:
+                self.offset += len(data)
+                self.discarding = True
             return []
-        with open(self.path, "rb") as f:
-            f.seek(self.offset)
-            data = f.read()
-        end = data.rfind(b"\n") + 1                # 只取完整的行，半行留到下次
         self.offset += end
+        start = data.find(b"\n") + 1 if self.discarding else 0
+        self.discarding = False
         out, now = [], self.clock()
-        for line in data[:end].decode("utf-8", errors="replace").splitlines():
-            try:
-                entry = json.loads(line)
-            except ValueError:
+        for line in data[start:end].split(b"\n"):
+            if not line or len(line) > MAX_ENTRY_BYTES:
                 continue
-            if entry.get("kind") in KINDS and now - entry.get("ts", 0) <= MAX_AGE:
-                out.append(entry)
+            try:
+                entry = json.loads(line.decode("utf-8"))
+                if not isinstance(entry, dict) or entry.get("kind") not in KINDS:
+                    continue
+                ts, title, body = entry.get("ts"), entry.get("title"), entry.get("body", "")
+                if (type(ts) not in (int, float) or not now - MAX_AGE <= ts <= now
+                        or not isinstance(title, str) or not title or not isinstance(body, str)):
+                    continue
+                title.encode("utf-8")
+                body.encode("utf-8")
+            except (ValueError, RecursionError):
+                continue
+            out.append(entry)
         return out
 
 
 def should_show(entry, game_mode=False, settings_path=SETTINGS_PATH):
     return not game_mode and enabled(settings_path) and entry.get("kind") in KINDS
+
+
+def notification_content(entry, settings_path=SETTINGS_PATH):
+    if show_preview(settings_path):
+        return entry["title"], entry.get("body", "")
+    return PRIVATE_TITLES[entry["kind"]], ""
 
 
 _default = None

@@ -603,7 +603,8 @@ def run_tray(sup):
             try:  # hub 写进队列的通知用 Windows 系统通知弹出；游戏模式或主人关掉时丢弃
                 for entry in notices.read_new():
                     if canaan_notify.should_show(entry, game_mode=canaan_gamemode.active()):
-                        icon.notify(entry.get("body") or entry["title"], f"{name} · {entry['title']}")
+                        notice_title, notice_body = canaan_notify.notification_content(entry)
+                        icon.notify(notice_body or notice_title, f"{name} · {notice_title}")
             except Exception:
                 pass
             time.sleep(3)

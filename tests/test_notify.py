@@ -84,6 +84,69 @@ def test_reader_skips_stale_entries(tmp_path):
     assert reader.read_new() == []
 
 
+def test_failed_queue_write_leaves_notification_retryable(tmp_path):
+    path = tmp_path / "queue.jsonl"
+    path.mkdir()
+    notifier = cn.Notifier(path, Clock())
+    assert not notifier.post("reminder", "提醒", key="retry")
+    path.rmdir()
+    assert notifier.post("reminder", "提醒", key="retry")
+
+
+def test_reader_skips_invalid_rows_and_keeps_a_partial_row(tmp_path):
+    path = tmp_path / "queue.jsonl"
+    reader = cn.NotifyReader(path, Clock())
+    path.write_bytes(b'null\n{"kind":"reminder","ts":"now"}\n'
+                     b'{"kind":"reminder","ts":1001,"title":"future"}\n'
+                     b'{"kind":"reminder","ts":1000,"title":"\\ud800"}\n'
+                     b'{"kind":"reminder","ts":1000,"title":"ready"}\n'
+                     b'{"kind":"reminder","ts":1000,"title":"partial"}')
+    assert [entry["title"] for entry in reader.read_new()] == ["ready"]
+    with path.open("ab") as stream:
+        stream.write(b"\n")
+    assert [entry["title"] for entry in reader.read_new()] == ["partial"]
+    assert reader.read_new() == []
+
+
+def test_queue_can_append_after_an_interrupted_write(tmp_path):
+    path = tmp_path / "queue.jsonl"
+    clock = Clock()
+    reader = cn.NotifyReader(path, clock)
+    path.write_bytes(b'{"kind":"reminder"')
+    assert reader.read_new() == []
+    assert cn.Notifier(path, clock).post("reminder", "Valid")
+    assert len(reader.read_new()) == 1
+
+
+def test_reader_finds_replaced_queue_at_same_size(tmp_path):
+    path = tmp_path / "queue.jsonl"
+    old = b'{"kind":"reminder","ts":1000,"title":"old"}\n'
+    path.write_bytes(old)
+    reader = cn.NotifyReader(path, Clock())
+    rotated = path.with_suffix(".new")
+    rotated.write_bytes(old.replace(b"old", b"new"))
+    rotated.replace(path)
+    assert [entry["title"] for entry in reader.read_new()] == ["new"]
+
+
+def test_reader_skips_oversize_line_and_reads_following_notice(tmp_path):
+    path = tmp_path / "queue.jsonl"
+    reader = cn.NotifyReader(path, Clock())
+    path.write_bytes(b"x" * (cn.MAX_QUEUE_BYTES + 5) + b'\n'
+                     b'{"kind":"reminder","ts":1000,"title":"ready"}\n')
+    assert reader.read_new() == []
+    assert [entry["title"] for entry in reader.read_new()] == ["ready"]
+
+
+def test_notification_content_rechecks_preview_setting(tmp_path):
+    settings = tmp_path / "settings.json"
+    cn.set_preview_enabled(True, settings)
+    entry = {"kind": "reminder", "title": "Preview", "body": "Details"}
+    assert cn.notification_content(entry, settings) == ("Preview", "Details")
+    cn.set_preview_enabled(False, settings)
+    assert cn.notification_content(entry, settings) == (cn.PRIVATE_TITLES["reminder"], "")
+
+
 def test_should_show_respects_game_mode_and_switch(tmp_path):
     settings = tmp_path / "s.json"
     entry = {"kind": "failure", "title": "没办成"}

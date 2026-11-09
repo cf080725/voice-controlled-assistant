@@ -69,6 +69,42 @@ def test_scheduler_reminder_fires_even_in_quiet_hours(tmp_path):
     assert said and said[0][0] == "reminder" and "关灯" in said[0][1]
 
 
+def test_scheduler_retries_receipt_without_repeating_delivery(tmp_path, monkeypatch):
+    now = datetime(2026, 10, 6, 14)
+    policy = cp.ProactivePolicy(tmp_path / "state.json", clock=Clock(now))
+    policy.add_reminder(now, "Test")
+    save = policy.save
+    outcomes = iter([False, True])
+    monkeypatch.setattr(policy, "save", lambda: next(outcomes) and save())
+    said, notices = [], []
+    scheduler = cp.ProactiveScheduler(policy, lambda text, kind: said.append(text) or True,
+                                     notify=lambda *args, **kwargs: notices.append(args))
+
+    scheduler.step(idle=120, notif_ok=True)
+    assert policy.due_reminders()
+    scheduler.step(idle=120, notif_ok=True)
+    assert not policy.due_reminders()
+    assert len(said) == len(notices) == 1
+
+
+def test_corrupt_reminder_does_not_block_due_reminders(tmp_path):
+    now = datetime(2026, 10, 6, 14)
+    state = tmp_path / "state.json"
+    state.write_text(r'{"reminders": [null, {"due": "invalid"}, {"due": "2026-10-06T13:00:00", "what": "\ud800"}]}',
+                     encoding="utf-8")
+    policy = cp.ProactivePolicy(state, clock=Clock(now))
+    policy.add_reminder(now, "Valid")
+    assert [reminder["what"] for reminder in policy.due_reminders()] == ["Valid"]
+
+
+def test_mute_is_rolled_back_when_storage_fails(tmp_path, monkeypatch):
+    policy = cp.ProactivePolicy(tmp_path / "state.json", clock=Clock(datetime(2026, 10, 6, 14)))
+    monkeypatch.setattr(policy, "save", lambda: False)
+    with pytest.raises(OSError):
+        policy.mute_today()
+    assert policy.allowed("break")[0]
+
+
 def test_scheduler_skips_fullscreen_and_breaks_after_two_hours(tmp_path):
     clk = Clock(datetime(2026, 10, 6, 14, 0))
     p = cp.ProactivePolicy(str(tmp_path / "s.json"), clock=clk)

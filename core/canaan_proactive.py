@@ -361,6 +361,8 @@ class ProactivePolicy:
                 self.state.update(json.load(f))
         except Exception:
             pass
+        if not isinstance(self.state["reminders"], list):
+            self.state["reminders"] = []
 
     def save(self):
         import tempfile
@@ -371,7 +373,7 @@ class ProactivePolicy:
             try:
                 directory = os.path.dirname(self.state_path) or '.'
                 os.makedirs(directory, exist_ok=True)
-                with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=directory,
+                with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', errors='backslashreplace', dir=directory,
                         prefix=os.path.basename(self.state_path) + '.', suffix='.tmp', delete=False) as file:
                     temporary = file.name
                     json.dump(self.state, file, ensure_ascii=False, indent=1)
@@ -431,9 +433,13 @@ class ProactivePolicy:
             self.save()
 
     def mute_today(self):
-        self._roll_day()
-        self.state["muted_day"] = self.state["day"]
-        self.save()
+        with self._reminder_lock:
+            self._roll_day()
+            previous = self.state["muted_day"]
+            self.state["muted_day"] = self.state["day"]
+            if not self.save():
+                self.state["muted_day"] = previous
+                raise OSError("Proactive settings could not be saved")
 
     # --- 提醒 ---
     def add_reminder(self, due, what):
@@ -462,7 +468,15 @@ class ProactivePolicy:
         """Peek due work; remove it only after successful delivery."""
         with self._reminder_lock:
             now = self.clock()
-            return [r for r in self.state["reminders"] if datetime.fromisoformat(r["due"]) <= now]
+            due = []
+            for reminder in self.state["reminders"]:
+                try:
+                    text = reminder["what"]
+                    if isinstance(text, str) and text.encode("utf-8") and datetime.fromisoformat(reminder["due"]) <= now:
+                        due.append(reminder)
+                except (KeyError, TypeError, ValueError):
+                    continue
+            return due
 
     def finish_reminder(self, reminder):
         with self._reminder_lock:
@@ -593,6 +607,7 @@ class ProactiveScheduler(threading.Thread):
         self.valid, self.notify = valid, notify
         self.recall, self.recall_state = recall, recall_state   # 每天第一次见面提起重点（canaan_daily_recall）
         self._recall_pending = False
+        self._delivered_reminders = {}
         # 刚启动时智能体监听、接口都还没起来，等一会儿再拼“今天要记得”，免得漏掉待处理的任务
         # 不能叫 _started：会盖掉 threading.Thread 自己的 _started 事件，start() 直接报错
         self._created_at, self._recall_warmup = time.monotonic(), recall_warmup
@@ -611,6 +626,11 @@ class ProactiveScheduler(threading.Thread):
         for r in self.policy.due_reminders():
             if not self.valid():
                 continue
+            reminder_key = id(r)
+            if reminder_key in self._delivered_reminders:
+                if self.policy.finish_reminder(r):
+                    del self._delivered_reminders[reminder_key]
+                continue
             try:
                 import canaan_notify  # 系统通知：同一条提醒只弹一次（正忙时稍后再说也不重复弹）
                 post = self.notify if self.notify is not None else canaan_notify.post
@@ -618,7 +638,8 @@ class ProactiveScheduler(threading.Thread):
             except Exception:
                 pass
             if self.deliver(f"提醒你：{r['what']}。", "reminder"):
-                self.policy.finish_reminder(r)
+                if not self.policy.finish_reminder(r):
+                    self._delivered_reminders[reminder_key] = r
         # 2. 每日问候：闲置 4 小时以上后第一次操作，早上 7~11 点
         if idle > 4 * 3600:
             self._was_idle_long = True

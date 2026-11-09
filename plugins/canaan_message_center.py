@@ -11,6 +11,7 @@ from pathlib import Path
 from canaan_message_priority import SOURCES, PRIORITIES, DEFAULT_IMPORTANCE, validate_importance, classify_message, apply_review
 
 FORWARD_MARKER = "【团团消息转发】"
+UNKNOWN_DELIVERY_ERROR = "发送结果不确定，请核对聊天软件后再操作"
 CURSOR_BATCH = 200          # 读事件文件时每 200 行保存一次读取位置（原来每行都提交一次数据库）
 DEFAULT_SETTINGS = {"capture_visible": True, "poll_seconds": 2,
                     "notify_p0": False,
@@ -323,31 +324,37 @@ class MessageCenter:
             self.db.execute("UPDATE desktop_notifications SET state=? WHERE message_id=? AND state='showing'", (state, message_id))
 
     def forward_once(self):
-        if not self.settings["forward_enabled"] or self.sender is None:
-            return False
-        with self.lock:
+        with self.lock, self.db:
+            if self.stop_event.is_set() or not self.settings["forward_enabled"] or self.sender is None:
+                return False
             self.db.execute("UPDATE messages SET delivery='stored',error='已超过自动转发时间窗' WHERE delivery='queued' AND timestamp<?",
                             (time.time() - self.settings["forward_max_age_seconds"],))
             row = self.db.execute("SELECT * FROM messages WHERE delivery='queued' ORDER BY id LIMIT 1").fetchone()
             if not row:
-                self.db.commit()
                 return False
             self.db.execute("UPDATE messages SET delivery='sending' WHERE id=?", (row["id"],))
-            self.db.commit()
         body = f"{FORWARD_MARKER}\n{row['source']} · {row['conversation']}\n{row['sender']}：{row['text']}"
         try:
             result = self.sender("文件传输助手", body)
-            ok = bool(result.get("success"))
+            ok = result.get("success")
+            if not isinstance(ok, bool):
+                raise ValueError("发送回执缺少明确结果")
             state = "sent" if ok else ("confirmation_required" if result.get("error_code") == "CONFIRM_REQUIRED" else "blocked")
             if not ok and result.get("error_code") in ("INTERNAL_EXECUTION_ERROR", "VERIFICATION_FAILED", "DELIVERY_UNCERTAIN"):
                 state = "unknown"
             error = "" if ok else str(result.get("message") or "发送失败")[:300]
         except Exception:
-            state, error = "unknown", "发送结果不确定，请核对聊天软件后再操作"
-        with self.lock:
-            self.db.execute("UPDATE messages SET delivery=?,error=? WHERE id=?", (state, error, row["id"]))
-            self.db.commit()
-        return state == "sent"
+            state, error = "unknown", UNKNOWN_DELIVERY_ERROR
+        update_delivery = "UPDATE messages SET delivery=?,error=? WHERE id=? AND delivery='sending'"
+        try:
+            with self.lock, self.db:
+                changed = self.db.execute(update_delivery, (state, error, row["id"])).rowcount
+        except sqlite3.Error:
+            # The external action may already have happened. Keep it off the retry queue.
+            with self.lock, self.db:
+                self.db.execute(update_delivery, ("unknown", UNKNOWN_DELIVERY_ERROR, row["id"]))
+            return False
+        return bool(changed) and state == "sent"
 
     def retry(self, message_id):
         with self.lock:
